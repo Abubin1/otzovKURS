@@ -245,3 +245,89 @@ app.get('/register.html', (req, res) => {
 app.listen(PORT, () => {
     console.log(`🚀 Сервер запущен на http://localhost:${PORT}`);
 });
+
+
+
+
+//Получить все категории
+app.get('/api/categories', async (req, res) => {
+    try{
+        const [categories] = await db.query('SELECT id, name FROM categories ORDER BY name');
+        res.json({success: true, categories});
+    } catch (error) {
+        console.error('Ошибка при получении категорий:', error);
+        res.status(500).json({success: false, error: error.message});
+    }
+});
+// 2. Получить все товары
+app.get('/api/products', async (req, res) => {
+    try {
+        const [products] = await db.query(`
+            SELECT 
+                p.id, 
+                p.name, 
+                p.category_id, 
+                p.address, 
+                p.description,
+                COALESCE(AVG(r.rating), 0) as avg_rating,
+                COUNT(r.id) as review_count
+            FROM products p
+            LEFT JOIN reviews r ON p.id = r.product_id AND r.is_hidden = FALSE
+            GROUP BY p.id
+            ORDER BY p.name
+        `);
+        res.json({ success: true, products });
+    } catch (error) {
+        console.error('Ошибка:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// 3. Раздача catalog.html
+app.get('/ProductPage.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'ProductPage.html'));
+});
+
+
+
+
+
+
+// Получить один товар с отзывами и НАЗВАНИЕМ КАТЕГОРИИ
+app.get('/api/products/:id', async (req, res) => {
+    try {
+        const [products] = await db.query(`
+            SELECT 
+                p.*, 
+                c.name as category_name,
+                COALESCE(AVG(r.rating), 0) as avg_rating,
+                COUNT(r.id) as review_count
+            FROM products p
+            LEFT JOIN categories c ON p.category_id = c.id
+            LEFT JOIN reviews r ON p.id = r.product_id AND r.is_hidden = FALSE
+            WHERE p.id = ?
+            GROUP BY p.id
+        `, [req.params.id]);
+        
+        if (products.length === 0) {
+            return res.status(404).json({ success: false, error: 'Товар не найден' });
+        }
+        
+        const [reviews] = await db.query(`
+            SELECT r.*, u.name as author_name 
+            FROM reviews r
+            JOIN users u ON r.author_id = u.id
+            WHERE r.product_id = ? AND r.is_hidden = FALSE
+            ORDER BY r.created_at DESC
+        `, [req.params.id]);
+        
+        res.json({ 
+            success: true, 
+            product: products[0],
+            reviews: reviews
+        });
+    } catch (error) {
+        console.error('Ошибка:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});

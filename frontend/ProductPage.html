@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Каталог товаров — Честный Отзыв</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0B1120;
+            color: #E2E8F0;
+        }
+        .navbar {
+            background: #111827;
+            border-bottom: 1px solid #2D3748;
+            padding: 16px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #C084FC, #818CF8);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-decoration: none;
+        }
+        .back-btn {
+            background: #1F2A48;
+            padding: 8px 20px;
+            border-radius: 30px;
+            text-decoration: none;
+            color: #E2E8F0;
+            font-weight: 500;
+            transition: 0.2s;
+        }
+        .back-btn:hover {
+            background: #2D3A5E;
+        }
+        .container {
+            max-width: 1300px;
+            margin: 40px auto;
+            padding: 0 24px;
+        }
+        h1 {
+            font-size: 32px;
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, #FFFFFF, #A78BFA);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .filters {
+            background: #1A2335;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 30px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .filter-group label {
+            font-weight: 500;
+            color: #94A3B8;
+        }
+        select, input {
+            background: #0B1120;
+            border: 1px solid #2D3748;
+            padding: 8px 16px;
+            border-radius: 30px;
+            color: #E2E8F0;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+        }
+        .search-input {
+            width: 200px;
+        }
+        .reset-btn {
+            background: #EF4444;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 30px;
+            color: white;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .reset-btn:hover {
+            background: #DC2626;
+        }
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 24px;
+        }
+        .product-card {
+            background: #1A2335;
+            border-radius: 20px;
+            padding: 20px;
+            border: 1px solid #2D3748;
+            transition: 0.2s;
+            cursor: pointer;
+        }
+        .product-card:hover {
+            transform: translateY(-5px);
+            border-color: #6C63FF;
+        }
+        .product-img {
+            font-size: 64px;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+        .product-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .product-category {
+            font-size: 12px;
+            color: #A78BFA;
+            margin-bottom: 12px;
+        }
+        .product-rating {
+            font-size: 14px;
+            color: #FBBF24;
+            margin-bottom: 8px;
+        }
+        .product-reviews {
+            font-size: 12px;
+            color: #94A3B8;
+        }
+        .product-price {
+            font-size: 20px;
+            font-weight: 700;
+            color: #6C63FF;
+            margin-top: 12px;
+        }
+        .loading {
+            text-align: center;
+            padding: 60px;
+            font-size: 18px;
+            color: #94A3B8;
+        }
+        .no-results {
+            text-align: center;
+            padding: 60px;
+            background: #1A2335;
+            border-radius: 20px;
+            grid-column: 1 / -1;
+        }
+        @media (max-width: 700px) {
+            .navbar {
+                padding: 16px 20px;
+            }
+            .filters {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .search-input {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <a href="/" class="logo">⭐️ Честный Отзыв</a>
+        <a href="/" class="back-btn">← На главную</a>
+    </div>
+
+    <div class="container">
+        <h1>🛍️ Каталог товаров</h1>
+
+        <div class="filters">
+            <div class="filter-group">
+                <label>🔍 Поиск:</label>
+                <input type="text" id="searchInput" class="search-input" placeholder="Название товара...">
+            </div>
+            <div class="filter-group">
+                <label>📂 Категория:</label>
+                <select id="categoryFilter">
+                    <option value="all">Все категории</option>
+                </select>
+            </div>
+            <button id="resetBtn" class="reset-btn">Сбросить фильтры</button>
+        </div>
+
+        <div id="productsGrid" class="products-grid">
+            <div class="loading">Загрузка товаров...</div>
+        </div>
+    </div>
+
+    <script>
+        let allProducts = [];
+        let categories = [];
+
+        // Загрузка категорий из БД
+        async function loadCategories() {
+            try {
+                const response = await fetch('/api/categories');
+                const data = await response.json();
+                if (data.success) {
+                    categories = data.categories;
+                    const select = document.getElementById('categoryFilter');
+                    categories.forEach(cat => {
+                        const option = document.createElement('option');
+                        option.value = cat.id;
+                        option.textContent = cat.name;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки категорий:', error);
+            }
+        }
+
+        // Загрузка товаров из БД
+        async function loadProducts() {
+            try {
+                const response = await fetch('/api/products');
+                const data = await response.json();
+                if (data.success) {
+                    allProducts = data.products;
+                    renderProducts();
+                } else {
+                    document.getElementById('productsGrid').innerHTML = '<div class="no-results">❌ Ошибка загрузки товаров</div>';
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки товаров:', error);
+                document.getElementById('productsGrid').innerHTML = '<div class="no-results">❌ Не удалось загрузить товары. Проверьте соединение с сервером.</div>';
+            }
+        }
+        function getCategoryName(categoryId) {
+    // Ищем категорию в загруженном массиве categories
+    const cat = categories.find(c => c.id == categoryId);
+    return cat ? cat.name : 'Без категории';
+}
+
+        function renderProduct(product, reviews) {
+    const html = `
+        <div class="product-card">
+            <h1 class="product-name">${escapeHtml(product.name)}</h1>
+            <div class="product-category">${escapeHtml(product.category_name) || 'Без категории'}</div>
+            <div class="product-rating">⭐ ${product.avg_rating || 0} / 5 (${product.review_count || 0} отзывов)</div>
+            ${product.address ? `<div class="product-address">📍 ${escapeHtml(product.address)}</div>` : ''}
+            <div class="product-desc">${escapeHtml(product.description) || 'Описание отсутствует'}</div>
+            
+            <h3 class="reviews-title">📝 Отзывы (${reviews?.length || 0})</h3>
+            ${renderReviews(reviews)}
+        </div>
+    `;
+    document.getElementById('content').innerHTML = html;
+}
+
+
+        // Рендер товаров с фильтрацией
+        function renderProducts() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const categoryId = document.getElementById('categoryFilter').value;
+
+            let filtered = [...allProducts];
+
+            // Фильтр по поиску
+            if (searchTerm) {
+                filtered = filtered.filter(p => p.name.toLowerCase().includes(searchTerm));
+            }
+
+            // Фильтр по категории
+            if (categoryId !== 'all') {
+                filtered = filtered.filter(p => p.category_id == categoryId);
+            }
+
+            const grid = document.getElementById('productsGrid');
+            
+            if (filtered.length === 0) {
+                grid.innerHTML = `<div class="no-results">😕 Товаров не найдено. Попробуйте другие фильтры.</div>`;
+                return;
+            }
+
+            grid.innerHTML = filtered.map(product => `
+                <div class="product-card" onclick="openProductCard(${product.id})">
+                    <div class="product-title">${escapeHtml(product.name)}</div>
+                    <div class="product-category">${getCategoryName(product.category_id)}</div>
+                    <div class="product-rating">⭐ ${product.avg_rating || 0} / 5</div>
+                    <div class="product-reviews">📝 ${product.review_count || 0} отзывов</div>
+                    ${product.address ? `<div class="product-price">📍 ${escapeHtml(product.address)}</div>` : ''}
+                </div>
+            `).join('');
+        }
+
+        // заглушка нажатия по карточке товара
+        window.openProductCard = function(productId) {
+            window.location.href = `/productCard.html?id=${productId}`;
+        }
+
+        // Защита от XSS
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
+        // Сброс фильтров
+        function resetFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('categoryFilter').value = 'all';
+            renderProducts();
+        }
+
+        // События
+        document.getElementById('searchInput').addEventListener('input', renderProducts);
+        document.getElementById('categoryFilter').addEventListener('change', renderProducts);
+        document.getElementById('resetBtn').addEventListener('click', resetFilters);
+
+        // Инициализация
+        loadCategories();
+        loadProducts();
+    </script>
+</body>
+</html>

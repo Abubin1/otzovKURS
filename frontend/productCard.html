@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Карточка товара — Честный Отзыв</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0B1120;
+            color: #E2E8F0;
+            padding: 40px 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 30px;
+            color: #94A3B8;
+            text-decoration: none;
+            transition: 0.2s;
+        }
+        .back-link:hover {
+            color: #6C63FF;
+        }
+        .product-card {
+            background: #1A2335;
+            border-radius: 28px;
+            padding: 40px;
+            border: 1px solid #2D3748;
+        }
+        .product-emoji {
+            font-size: 100px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .product-name {
+            font-size: 32px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .product-category {
+            text-align: center;
+            color: #A78BFA;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        .product-rating {
+            text-align: center;
+            font-size: 24px;
+            color: #FBBF24;
+            margin-bottom: 20px;
+        }
+        .product-address {
+            background: #0B1120;
+            padding: 12px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 14px;
+            color: #94A3B8;
+        }
+        .product-desc {
+            line-height: 1.6;
+            margin-bottom: 30px;
+            color: #94A3B8;
+        }
+        .reviews-title {
+            font-size: 20px;
+            margin-top: 30px;
+            margin-bottom: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #2D3748;
+        }
+        .review {
+            background: #0B1120;
+            padding: 16px;
+            border-radius: 16px;
+            margin-bottom: 12px;
+        }
+        .review-author {
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .review-rating {
+            color: #FBBF24;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        .review-text {
+            color: #94A3B8;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .review-pros {
+            color: #4ADE80;
+            font-size: 13px;
+            margin-top: 8px;
+        }
+        .review-cons {
+            color: #F87171;
+            font-size: 13px;
+            margin-top: 4px;
+        }
+        .no-reviews {
+            text-align: center;
+            color: #94A3B8;
+            padding: 40px;
+        }
+        .loading {
+            text-align: center;
+            padding: 60px;
+            color: #94A3B8;
+        }
+        .error {
+            text-align: center;
+            padding: 60px;
+            color: #EF4444;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/ProductPage.html" class="back-link">← Назад к товарам</a>
+        
+        <div id="content">
+            <div class="loading">Загрузка товара...</div>
+        </div>
+    </div>
+
+    <script>
+        // Получаем ID товара из URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const productId = urlParams.get('id');
+
+        if (!productId) {
+            document.getElementById('content').innerHTML = '<div class="error">❌ Товар не указан</div>';
+        } else {
+            loadProduct();
+        }
+
+        async function loadProduct() {
+            try {
+                console.log('Загрузка товара ID:', productId);
+                const response = await fetch(`/api/products/${productId}`);
+                console.log('Ответ сервера:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log('Полученные данные:', data);
+                
+                if (data.success) {
+                    renderProduct(data.product, data.reviews);
+                } else {
+                    document.getElementById('content').innerHTML = `<div class="error">❌ ${data.error || 'Товар не найден'}</div>`;
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки:', error);
+                document.getElementById('content').innerHTML = `<div class="error">❌ Ошибка загрузки: ${error.message}</div>`;
+            }
+        }
+
+        function getCategoryEmoji(categoryId) {
+            const emojis = {
+                1: '🍽️',
+                2: '🏨',
+                3: '📱',
+                4: '👕',
+                5: '🔧',
+                6: '🎮'
+            };
+            return emojis[categoryId] || '📦';
+        }
+
+        function renderProduct(product, reviews) {
+            const html = `
+                <div class="product-card">
+                    <div class="product-emoji">${getCategoryEmoji(product.category_id)}</div>
+                    <h1 class="product-name">${escapeHtml(product.name)}</h1>
+                    <div class="product-category">${escapeHtml(product.category_name) || 'Без категории'}</div>
+                    <div class="product-rating">⭐ ${product.avg_rating || 0} / 5 (${product.review_count || 0} отзывов)</div>
+                    ${product.address ? `<div class="product-address">📍 ${escapeHtml(product.address)}</div>` : ''}
+                    <div class="product-desc">${escapeHtml(product.description) || 'Описание отсутствует'}</div>
+                    
+                    <h3 class="reviews-title">📝 Отзывы (${reviews?.length || 0})</h3>
+                    ${renderReviews(reviews)}
+                </div>
+            `;
+            document.getElementById('content').innerHTML = html;
+        }
+
+        function renderReviews(reviews) {
+            if (!reviews || reviews.length === 0) {
+                return '<div class="no-reviews">Пока нет отзывов. Будьте первым!</div>';
+            }
+            
+            return reviews.map(review => `
+                <div class="review">
+                    <div class="review-author">${escapeHtml(review.author_name)}</div>
+                    <div class="review-rating">⭐ ${review.rating} / 5</div>
+                    <div class="review-text">${escapeHtml(review.comment) || 'Без комментария'}</div>
+                    ${review.pros ? `<div class="review-pros">👍 ${escapeHtml(review.pros)}</div>` : ''}
+                    ${review.cons ? `<div class="review-cons">👎 ${escapeHtml(review.cons)}</div>` : ''}
+                </div>
+            `).join('');
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+    </script>
+</body>
+</html>
