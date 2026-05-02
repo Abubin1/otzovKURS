@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Честный Отзыв — платформа отзывов</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0B1120;
+            color: #E2E8F0;
+        }
+        .navbar {
+            background: #111827;
+            border-bottom: 1px solid #2D3748;
+            padding: 16px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #C084FC, #818CF8);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .user-info {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+        .user-name {
+            background: #1F2A48;
+            padding: 6px 14px;
+            border-radius: 40px;
+            font-size: 14px;
+        }
+        .logout-btn {
+            background: #EF4444;
+            border: none;
+            padding: 6px 16px;
+            border-radius: 30px;
+            color: white;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .logout-btn:hover {
+            background: #DC2626;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 60px auto;
+            padding: 0 24px;
+            text-align: center;
+        }
+        .hero h1 {
+            font-size: 48px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #FFFFFF, #A78BFA);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 16px;
+        }
+        .hero p {
+            font-size: 18px;
+            color: #94A3B8;
+            max-width: 600px;
+            margin: 0 auto 32px;
+        }
+        .card {
+            background: #1A2335;
+            border-radius: 28px;
+            padding: 40px;
+            border: 1px solid #2D3748;
+            margin-top: 40px;
+        }
+        .guest-actions {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 32px;
+        }
+        .btn {
+            padding: 12px 28px;
+            border-radius: 40px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: 0.2s;
+        }
+        .btn-primary {
+            background: #6C63FF;
+            color: white;
+        }
+        .btn-outline {
+            border: 1px solid #6C63FF;
+            color: #6C63FF;
+            background: transparent;
+        }
+        .btn-primary:hover {
+            background: #5A52E0;
+            transform: translateY(-2px);
+        }
+        .btn-outline:hover {
+            background: rgba(108, 99, 255, 0.1);
+        }
+        .features {
+            display: flex;
+            gap: 24px;
+            margin-top: 60px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .feature {
+            background: #111827;
+            padding: 24px;
+            border-radius: 20px;
+            width: 220px;
+            border: 1px solid #2D3748;
+        }
+        .feature span {
+            font-size: 32px;
+            display: block;
+            margin-bottom: 12px;
+        }
+        @media (max-width: 700px) {
+            .navbar {
+                flex-direction: column;
+                gap: 12px;
+            }
+            .hero h1 {
+                font-size: 32px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="logo">⭐️ Честный Отзыв</div>
+        <div class="user-info" id="userInfo"></div>
+    </div>
+
+    <div class="container">
+        <div class="hero">
+            <h1>Реальные мнения!!!! Никаких фейков!!!!!</h1>
+            <p>Платформа, где КАЖДЫЙ голос имеет значение. Читайте отзывы, оценивайте товары и услуги, помогайте другим выбирать лучшее.</p>
+        </div>
+
+        <div id="mainContent">
+        </div>
+    </div>
+
+    <script>
+        async function checkAuth() {
+            try {
+                const res = await fetch('/api/me');
+                const data = await res.json();
+                const userInfoDiv = document.getElementById('userInfo');
+                const mainDiv = document.getElementById('mainContent');
+
+                if (data.isAuthenticated && data.user) {
+                    const user = data.user;
+                    userInfoDiv.innerHTML = `
+                        <span class="user-name">👋 ${user.name}</span>
+                        <button class="logout-btn" id="logoutBtn">Выйти</button>
+                    `;
+                    mainDiv.innerHTML = `
+                        <div class="card">
+                            <h2 style="margin-bottom: 16px;">✨ Добро пожаловать, ${user.name}!</h2>
+                            <p style="margin-bottom: 24px;">Прив Арс</p>
+                            <img src="https://yastatic.net/naydex/yandex-search/dE6qt5H27/35697epIc/pGyqyM2lfnfc75NhwA9UBVUck-Qd7ko-k81MsJiJRPsgz05j8vGqCiYHWwTekOorkWLxcYnNP1MDTp8Y9CruYMDgU9CpEc_LbHci5Wyv8LH5Ga_kGasXGs_IhFg" alt="манки" style="max-width: 300px;">
+                            </div>
+                        </div>
+                    `;
+                    document.getElementById('logoutBtn')?.addEventListener('click', async () => {
+                        await fetch('/api/logout', { method: 'POST' });
+                        window.location.reload();
+                    });
+                } else {
+                    userInfoDiv.innerHTML = `<a href="/login.html" class="btn btn-outline" style="padding: 6px 18px;">Войти</a>`;
+                    mainDiv.innerHTML = `
+                        <div class="guest-actions">
+                            <a href="/register.html" class="btn btn-primary">Создать аккаунт</a>
+                            <a href="/login.html" class="btn btn-outline">Уже есть аккаунт</a>
+                        </div>
+                        <div class="features">
+                            <div class="feature"><span>🔍</span> Честные оценки</div>
+                            <div class="feature"><span>🏷️</span> Теги для товаров</div>
+                            <div class="feature"><span>🛡️</span> Защита от накрутки</div>
+                            <div class="feature"><span>📱</span> Адаптивный дизайн</div>
+                        </div>
+                    `;
+                }
+            } catch (err) {
+                console.error('Ошибка проверки сессии', err);
+            }
+        }
+        checkAuth();
+    </script>
+</body>
+</html>

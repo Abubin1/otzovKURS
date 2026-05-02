@@ -7,7 +7,7 @@ services:
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: otziv_bd
+      MYSQL_DATABASE: otzivBD
       MYSQL_USER: admin
       MYSQL_PASSWORD: admin
     ports:
@@ -27,6 +27,27 @@ services:
       ADMINER_DEFAULT_SERVER: mysql
     depends_on:
       - mysql
+
+  backend:
+    build: ./backend
+    container_name: otziv_backend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASSWORD: root
+      DB_NAME: otzivBD
+      PORT: 3000
+      SESSION_SECRET: otziv_super_secret_key_2025
+    depends_on:
+      - mysql
+    volumes:
+      - ./backend:/app
+      - ./frontend:/frontend
+      - /app/node_modules
 
 volumes:
   mysql_data:

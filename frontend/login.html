@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход — Честный Отзыв</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(145deg, #0B1120 0%, #19223B 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-container {
+            max-width: 450px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border-radius: 32px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.3);
+            padding: 40px 32px;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .logo {
+            font-size: 56px;
+            margin-bottom: 12px;
+        }
+
+        h1 {
+            color: #FFFFFF;
+            font-size: 28px;
+            font-weight: 600;
+            letter-spacing: -0.3px;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: #8E9BB1;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        label {
+            display: block;
+            color: #C9D3E8;
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 6px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 16px;
+            background: #1A2335;
+            border: 1.5px solid #2A3448;
+            border-radius: 14px;
+            font-size: 15px;
+            color: #FFFFFF;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: #6C63FF;
+            background: #1F2A40;
+            box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.2);
+        }
+
+        input.is-invalid {
+            border-color: #FF5A5A;
+            background: #2A1A2A;
+        }
+
+        .invalid-feedback {
+            color: #FF8A8A;
+            font-size: 12px;
+            margin-top: 6px;
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(95deg, #6C63FF 0%, #3F3A9E 100%);
+            border: none;
+            border-radius: 14px;
+            color: white;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 8px;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .btn-login:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(108, 99, 255, 0.3);
+        }
+
+        .btn-login:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .register-link {
+            text-align: center;
+            margin-top: 24px;
+            color: #8E9BB1;
+            font-size: 14px;
+        }
+
+        .register-link a {
+            color: #6C63FF;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .register-link a:hover {
+            text-decoration: underline;
+        }
+
+        .alert {
+            padding: 14px;
+            border-radius: 14px;
+            margin-bottom: 24px;
+            font-size: 14px;
+        }
+
+        .alert-success {
+            background: #1E3A2F;
+            border: 1px solid #4CAF50;
+            color: #B9F6CA;
+        }
+
+        .alert-danger {
+            background: #3A1E2A;
+            border: 1px solid #FF5A5A;
+            color: #FFB3B3;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <div class="logo">📝</div>
+            <h1>Добро пожаловать</h1>
+            <div class="subtitle">Войдите, чтобы оставить честный отзыв</div>
+        </div>
+
+        <div id="message"></div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label>Email или телефон *</label>
+                <input type="text" id="login" placeholder="ivan@example.com или +7 999 123-45-67">
+                <div class="invalid-feedback" id="loginError"></div>
+            </div>
+
+            <div class="form-group">
+                <label>Пароль *</label>
+                <input type="password" id="password" placeholder="••••••••">
+                <div class="invalid-feedback" id="passwordError"></div>
+            </div>
+
+            <button type="submit" class="btn-login" id="submitBtn">Войти →</button>
+        </form>
+
+        <div class="register-link">
+            Впервые у нас? <a href="/register.html">Создать аккаунт</a>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('loginForm');
+        const loginInput = document.getElementById('login');
+        const passwordInput = document.getElementById('password');
+        const submitBtn = document.getElementById('submitBtn');
+        const messageDiv = document.getElementById('message');
+
+        function cleanPhone(phone) {
+            return phone.replace(/[\s\-\(\)]/g, '');
+        }
+
+        function validateLogin(login) {
+            if (!login) return false;
+            const isEmail = /^[^\s@]+@([^\s@]+\.)+[^\s@]+$/.test(login);
+            if (isEmail) return true;
+            const cleaned = cleanPhone(login);
+            return /^(\+7|8|9)?\d{10}$/.test(cleaned);
+        }
+
+        function prepareLogin(login) {
+            const isEmail = /^[^\s@]+@([^\s@]+\.)+[^\s@]+$/.test(login);
+            if (isEmail) return login.toLowerCase().trim();
+            return cleanPhone(login);
+        }
+
+        function validateForm() {
+            let isValid = true;
+            if (!loginInput.value) {
+                document.getElementById('loginError').textContent = 'Введите email или телефон';
+                loginInput.classList.add('is-invalid');
+                isValid = false;
+            } else if (!validateLogin(loginInput.value)) {
+                document.getElementById('loginError').textContent = 'Неверный формат';
+                loginInput.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                loginInput.classList.remove('is-invalid');
+                document.getElementById('loginError').textContent = '';
+            }
+
+            if (!passwordInput.value) {
+                document.getElementById('passwordError').textContent = 'Введите пароль';
+                passwordInput.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                passwordInput.classList.remove('is-invalid');
+                document.getElementById('passwordError').textContent = '';
+            }
+
+            submitBtn.disabled = !isValid;
+            return isValid;
+        }
+
+        loginInput.addEventListener('input', validateForm);
+        passwordInput.addEventListener('input', validateForm);
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!validateForm()) return;
+
+            const login = prepareLogin(loginInput.value);
+            const password = passwordInput.value;
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Вход...';
+            messageDiv.innerHTML = '';
+
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ login, password })
+                });
+                const result = await response.json();
+                if (response.ok && result.success) {
+                    messageDiv.innerHTML = '<div class="alert alert-success">✅ Успешный вход! Перенаправление...</div>';
+                    setTimeout(() => window.location.href = '/', 1000);
+                } else {
+                    messageDiv.innerHTML = `<div class="alert alert-danger">❌ ${result.error || 'Ошибка входа'}</div>`;
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Войти →';
+                }
+            } catch (err) {
+                messageDiv.innerHTML = '<div class="alert alert-danger">❌ Ошибка соединения с сервером</div>';
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Войти →';
+            }
+        });
+
+        validateForm();
+    </script>
+</body>
+</html>
