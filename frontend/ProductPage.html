@@ -45,6 +45,30 @@
         .back-btn:hover {
             background: #2D3A5E;
         }
+        .user-info {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+        .user-name {
+            background: #1F2A48;
+            padding: 6px 14px;
+            border-radius: 40px;
+            font-size: 14px;
+        }
+        .logout-btn {
+            background: #EF4444;
+            border: none;
+            padding: 6px 16px;
+            border-radius: 30px;
+            color: white;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .logout-btn:hover {
+            background: #DC2626;
+        }
         .container {
             max-width: 1300px;
             margin: 40px auto;
@@ -177,8 +201,11 @@
 </head>
 <body>
     <div class="navbar">
-        <a href="/" class="logo">⭐️ Честный Отзыв</a>
-        <a href="/" class="back-btn">← На главную</a>
+        <div style="display: flex; align-items: center; gap: 24px;">
+            <a href="/" class="logo">⭐️ Честный Отзыв</a>
+            <a href="/" class="back-btn">← На главную</a>
+        </div>
+        <div class="user-info" id="userInfo"></div>
     </div>
 
     <div class="container">
@@ -206,6 +233,31 @@
     <script>
         let allProducts = [];
         let categories = [];
+
+        async function checkAuth() {
+            try {
+                const res = await fetch('/api/me');
+                const data = await res.json();
+                const userInfoDiv = document.getElementById('userInfo');
+
+                if (data.isAuthenticated && data.user) {
+                    const user = data.user;
+                    userInfoDiv.innerHTML = `
+                        <span class="user-name">👋 ${user.name}</span>
+                        <button class="logout-btn" id="logoutBtn">Выйти</button>
+                    `;
+                    document.getElementById('logoutBtn')?.addEventListener('click', async () => {
+                        await fetch('/api/logout', { method: 'POST' });
+                        window.location.reload();
+                    });
+                } else {
+                    userInfoDiv.innerHTML = `<a href="/login.html" class="logout-btn" style="background: #6C63FF; text-decoration: none;">Войти</a>`;
+                }
+            } catch (err) {
+                console.error('Ошибка проверки сессии', err);
+            }
+        }
+        checkAuth();
 
         // Загрузка категорий из БД
         async function loadCategories() {
@@ -243,28 +295,11 @@
                 document.getElementById('productsGrid').innerHTML = '<div class="no-results">❌ Не удалось загрузить товары. Проверьте соединение с сервером.</div>';
             }
         }
+        
         function getCategoryName(categoryId) {
-    // Ищем категорию в загруженном массиве categories
-    const cat = categories.find(c => c.id == categoryId);
-    return cat ? cat.name : 'Без категории';
-}
-
-        function renderProduct(product, reviews) {
-    const html = `
-        <div class="product-card">
-            <h1 class="product-name">${escapeHtml(product.name)}</h1>
-            <div class="product-category">${escapeHtml(product.category_name) || 'Без категории'}</div>
-            <div class="product-rating">⭐ ${product.avg_rating || 0} / 5 (${product.review_count || 0} отзывов)</div>
-            ${product.address ? `<div class="product-address">📍 ${escapeHtml(product.address)}</div>` : ''}
-            <div class="product-desc">${escapeHtml(product.description) || 'Описание отсутствует'}</div>
-            
-            <h3 class="reviews-title">📝 Отзывы (${reviews?.length || 0})</h3>
-            ${renderReviews(reviews)}
-        </div>
-    `;
-    document.getElementById('content').innerHTML = html;
-}
-
+            const cat = categories.find(c => c.id == categoryId);
+            return cat ? cat.name : 'Без категории';
+        }
 
         // Рендер товаров с фильтрацией
         function renderProducts() {
@@ -273,12 +308,10 @@
 
             let filtered = [...allProducts];
 
-            // Фильтр по поиску
             if (searchTerm) {
                 filtered = filtered.filter(p => p.name.toLowerCase().includes(searchTerm));
             }
 
-            // Фильтр по категории
             if (categoryId !== 'all') {
                 filtered = filtered.filter(p => p.category_id == categoryId);
             }
@@ -301,12 +334,10 @@
             `).join('');
         }
 
-        // заглушка нажатия по карточке товара
         window.openProductCard = function(productId) {
             window.location.href = `/productCard.html?id=${productId}`;
         }
 
-        // Защита от XSS
         function escapeHtml(str) {
             if (!str) return '';
             return str.replace(/[&<>]/g, function(m) {
@@ -317,19 +348,16 @@
             });
         }
 
-        // Сброс фильтров
         function resetFilters() {
             document.getElementById('searchInput').value = '';
             document.getElementById('categoryFilter').value = 'all';
             renderProducts();
         }
 
-        // События
         document.getElementById('searchInput').addEventListener('input', renderProducts);
         document.getElementById('categoryFilter').addEventListener('change', renderProducts);
         document.getElementById('resetBtn').addEventListener('click', resetFilters);
 
-        // Инициализация
         loadCategories();
         loadProducts();
     </script>
