@@ -197,7 +197,7 @@ app.get('/api/me', async (req, res) => {
         }
 
         const [users] = await db.query(
-            `SELECT id, name, email, phone, city, role 
+            `SELECT id, name, email, phone, city, role
              FROM users WHERE id = ? AND is_banned = FALSE`,
             [req.session.userId]
         );
@@ -209,7 +209,7 @@ app.get('/api/me', async (req, res) => {
 
         res.json({
             isAuthenticated: true,
-            user: users[0]
+            user: users[0]  // теперь user содержит поле role
         });
 
     } catch (error) {
@@ -328,6 +328,424 @@ app.get('/api/products/:id', async (req, res) => {
         });
     } catch (error) {
         console.error('Ошибка:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// ========== АДМИН ПАНЕЛЬ - ПРОВЕРКА РОЛИ ==========
+// Middleware для проверки прав администратора
+async function isAdmin(req, res, next) {
+    if (!req.session.userId) {
+        return res.status(401).json({ success: false, error: 'Не авторизован' });
+    }
+    
+    const [users] = await db.query(
+        'SELECT role FROM users WHERE id = ? AND is_banned = FALSE',
+        [req.session.userId]
+    );
+    
+    if (users.length === 0 || users[0].role !== 'admin') {
+        return res.status(403).json({ success: false, error: 'Доступ запрещен. Требуются права администратора.' });
+    }
+    
+    next();
+}
+
+// Проверка, является ли текущий пользователь админом
+app.get('/api/admin/check', async (req, res) => {
+    try {
+        if (!req.session.userId) {
+            return res.json({ isAdmin: false });
+        }
+        
+        const [users] = await db.query(
+            'SELECT role FROM users WHERE id = ? AND is_banned = FALSE',
+            [req.session.userId]
+        );
+        
+        const isAdmin = users.length > 0 && users[0].role === 'admin';
+        res.json({ isAdmin });
+    } catch (error) {
+        console.error('Ошибка проверки прав:', error);
+        res.json({ isAdmin: false });
+    }
+});
+
+// ========== УПРАВЛЕНИЕ КАТЕГОРИЯМИ ==========
+// Получить все категории (для админ-панели)
+app.get('/api/admin/categories', isAdmin, async (req, res) => {
+    try {
+        const [categories] = await db.query('SELECT * FROM categories ORDER BY id');
+        res.json({ success: true, categories });
+    } catch (error) {
+        console.error('Ошибка:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Добавить категорию
+app.post('/api/admin/categories', isAdmin, async (req, res) => {
+    try {
+        const { name } = req.body;
+        
+        if (!name || name.trim().length < 2) {
+            return res.status(400).json({ success: false, error: 'Название категории должно быть не менее 2 символов' });
+        }
+        
+        const [result] = await db.query(
+            'INSERT INTO categories (name) VALUES (?)',
+            [name.trim()]
+        );
+        
+        res.json({ 
+            success: true, 
+            message: 'Категория добавлена',
+            category: { id: result.insertId, name: name.trim() }
+        });
+    } catch (error) {
+        console.error('Ошибка:', error);
+        if (error.code === 'ER_DUP_ENTRY') {
+            res.status(400).json({ success: false, error: 'Категория с таким названием уже существует' });
+        } else {
+            res.status(500).json({ success: false, error: error.message });
+        }
+    }
+});
+
+// Удалить категорию
+app.delete('/api/admin/categories/:id', isAdmin, async (req, res) => {
+    try {
+        const categoryId = req.params.id;
+        
+        // Проверяем, есть ли товары в этой категории
+        const [products] = await db.query(
+            'SELECT COUNT(*) as count FROM products WHERE category_id = ?',
+            [categoryId]
+        );
+        
+        if (products[0].count > 0) {
+            return res.status(400).json({ 
+                success: false, 
+                error: `Нельзя удалить категорию: в ней есть ${products[0].count} товаров. Сначала переместите или удалите товары.` 
+            });
+        }
+        
+        await db.query('DELETE FROM categories WHERE id = ?', [categoryId]);
+        res.json({ success: true, message: 'Категория удалена' });
+    } catch (error) {
+        console.error('Ошибка:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// ========== УПРАВЛЕНИЕ ТОВАРАМИ ==========
+// Получить все товары для админ-панели
+app.get('/api/admin/products', isAdmin, async (req, res) => {
+    try {
+        const [products] = await db.query(`
+            SELECT p.*, c.name as category_name 
+            FROM products p
+            LEFT JOIN categories c ON p.category_id = c.id
+            ORDER BY p.id DESC
+        `);
+        res.json({ success: true, products });
+    } catch (error) {
+        console.error('Ошибка:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Добавить товар
+app.post('/api/admin/products', isAdmin, async (req, res) => {
+    try {
+        const { name, category_id, address, description } = req.body;
+        
+        const errors = [];
+        if (!name || name.trim().length < 2) errors.push('Название не менее 2 символов');
+        if (!category_id) errors.push('Выберите категорию');
+        
+        if (errors.length > 0) {
+            return res.status(400).json({ success: false, error: errors.join(', ') });
+        }
+        
+        const [result] = await db.query(
+            'INSERT INTO products (name, category_id, address, description, avg_rating, review_count) VALUES (?, ?, ?, ?, 0, 0)',
+            [name.trim(), category_id, address || null, description || null]
+        );
+        
+        res.json({ 
+            success: true, 
+            message: 'Товар добавлен',
+            product: { id: result.insertId, name: name.trim() }
+        });
+    } catch (error) {
+        console.error('Ошибка:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Удалить товар
+app.delete('/api/admin/products/:id', isAdmin, async (req, res) => {
+    try {
+        const productId = req.params.id;
+        
+        // Проверяем, есть ли отзывы у товара
+        const [reviews] = await db.query(
+            'SELECT COUNT(*) as count FROM reviews WHERE product_id = ?',
+            [productId]
+        );
+        
+        if (reviews[0].count > 0) {
+            return res.status(400).json({ 
+                success: false, 
+                error: `Нельзя удалить товар: у него есть ${reviews[0].count} отзывов. Сначала удалите отзывы.` 
+            });
+        }
+        
+        await db.query('DELETE FROM products WHERE id = ?', [productId]);
+        res.json({ success: true, message: 'Товар удален' });
+    } catch (error) {
+        console.error('Ошибка:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// ========== ЗАГЛУШКИ ДЛЯ ЖАЛОБ И МОДЕРАЦИИ ==========
+app.get('/api/admin/reports', isAdmin, async (req, res) => {
+    try {
+        const [reports] = await db.query(`
+            SELECT 
+                r.*,
+                rs.name as status_name,
+                u.name as user_name,
+                rev.comment as review_text,
+                rev.rating as review_rating,
+                rev.pros as review_pros,
+                rev.cons as review_cons,
+                rev.created_at as review_created_at,
+                rev.author_id as review_author_id,
+                au.name as review_author_name,
+                au.is_banned as review_author_banned,
+                p.name as product_name,
+                p.id as product_id,
+                admin.name as checked_by_name
+            FROM reports r
+            JOIN report_statuses rs ON r.status_id = rs.id
+            JOIN users u ON r.user_id = u.id
+            JOIN reviews rev ON r.review_id = rev.id
+            JOIN products p ON rev.product_id = p.id
+            LEFT JOIN users au ON rev.author_id = au.id
+            LEFT JOIN users admin ON r.checked_by = admin.id
+            ORDER BY 
+                CASE WHEN rs.name = 'новая' THEN 1 ELSE 2 END,
+                r.created_at DESC
+        `);
+        res.json({ success: true, reports });
+    } catch (error) {
+        console.error('Ошибка:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Обработать жалобу (заглушка)
+app.put('/api/admin/reports/:id', isAdmin, async (req, res) => {
+    try {
+        const reportId = req.params.id;
+        const { status, action } = req.body; // status: 'принята', 'отклонена'
+        
+        // Получаем текущий статус жалобы
+        const [reports] = await db.query('SELECT * FROM reports WHERE id = ?', [reportId]);
+        if (reports.length === 0) {
+            return res.status(404).json({ success: false, error: 'Жалоба не найдена' });
+        }
+        
+        // Получаем ID статуса
+        const [statusRow] = await db.query('SELECT id FROM report_statuses WHERE name = ?', [status]);
+        if (statusRow.length === 0) {
+            return res.status(400).json({ success: false, error: 'Неверный статус' });
+        }
+        
+        // Обновляем жалобу
+        await db.query(
+            'UPDATE reports SET status_id = ?, checked_by = ?, resolved_at = NOW() WHERE id = ?',
+            [statusRow[0].id, req.session.userId, reportId]
+        );
+        
+        // Если жалоба принята и action указан, то скрываем отзыв
+        if (status === 'принята' && action === 'hide_review') {
+            await db.query('UPDATE reviews SET is_hidden = TRUE WHERE id = ?', [reports[0].review_id]);
+        }
+        
+        res.json({ success: true, message: `Жалоба ${status === 'принята' ? 'принята' : 'отклонена'}` });
+    } catch (error) {
+        console.error('Ошибка:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Получить всех пользователей (для админ-панели)
+app.get('/api/admin/users', isAdmin, async (req, res) => {
+    try {
+        const [users] = await db.query(`
+            SELECT id, name, email, phone, city, role, is_banned, ban_reason
+            FROM users 
+            ORDER BY id
+        `);
+        res.json({ success: true, users });
+    } catch (error) {
+        console.error('Ошибка:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Забанить пользователя
+app.put('/api/admin/users/:id/ban', isAdmin, async (req, res) => {
+    try {
+        const userId = req.params.id;
+        const { reason } = req.body;
+        
+        if (!reason || reason.trim().length < 3) {
+            return res.status(400).json({ success: false, error: 'Укажите причину блокировки (мин. 3 символа)' });
+        }
+        
+        // Нельзя забанить админа
+        const [adminCheck] = await db.query('SELECT role FROM users WHERE id = ?', [userId]);
+        if (adminCheck.length > 0 && adminCheck[0].role === 'admin') {
+            return res.status(400).json({ success: false, error: 'Нельзя заблокировать администратора' });
+        }
+        
+        await db.query(
+            'UPDATE users SET is_banned = TRUE, ban_reason = ? WHERE id = ?',
+            [reason.trim(), userId]
+        );
+        
+        // Скрываем все отзывы забаненного пользователя
+        await db.query(
+            'UPDATE reviews SET is_hidden = TRUE WHERE author_id = ?',
+            [userId]
+        );
+        
+        res.json({ success: true, message: 'Пользователь заблокирован' });
+    } catch (error) {
+        console.error('Ошибка:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Раздача админ-панели
+app.get('/admin.html', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/admin.html'));
+});
+
+// ========== ОТЗЫВЫ ==========
+// Создать отзыв
+app.post('/api/reviews', async (req, res) => {
+    try {
+        if (!req.session.userId) {
+            return res.status(401).json({ success: false, error: 'Необходимо авторизоваться' });
+        }
+
+        const { product_id, rating, comment, pros, cons } = req.body;
+
+        const errors = [];
+        if (!product_id) errors.push('ID товара обязателен');
+        if (!rating || rating < 1 || rating > 5) errors.push('Оценка должна быть от 1 до 5');
+        if (!comment || comment.trim().length < 3) errors.push('Текст отзыва должен быть не менее 3 символов');
+
+        if (errors.length > 0) {
+            return res.status(400).json({ success: false, error: errors.join(', ') });
+        }
+
+        // Проверяем, не оставлял ли пользователь уже отзыв на этот товар
+        const [existing] = await db.query(
+            'SELECT id FROM reviews WHERE author_id = ? AND product_id = ?',
+            [req.session.userId, product_id]
+        );
+
+        if (existing.length > 0) {
+            return res.status(400).json({ success: false, error: 'Вы уже оставляли отзыв на этот товар' });
+        }
+
+        const [result] = await db.query(
+            `INSERT INTO reviews (author_id, product_id, rating, comment, pros, cons, created_at)
+             VALUES (?, ?, ?, ?, ?, ?, NOW())`,
+            [req.session.userId, product_id, rating, comment.trim(), pros?.trim() || null, cons?.trim() || null]
+        );
+
+        // Обновляем средний рейтинг товара
+        await updateProductRating(product_id);
+
+        res.json({ 
+            success: true, 
+            message: 'Отзыв добавлен!',
+            review_id: result.insertId
+        });
+
+    } catch (error) {
+        console.error('Ошибка создания отзыва:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Функция обновления рейтинга товара
+async function updateProductRating(productId) {
+    const [result] = await db.query(
+        `SELECT AVG(rating) as avg_rating, COUNT(*) as review_count 
+         FROM reviews 
+         WHERE product_id = ? AND is_hidden = FALSE`,
+        [productId]
+    );
+    
+    const avgRating = result[0].avg_rating || 0;
+    const reviewCount = result[0].review_count || 0;
+    
+    await db.query(
+        'UPDATE products SET avg_rating = ?, review_count = ? WHERE id = ?',
+        [avgRating, reviewCount, productId]
+    );
+}
+
+// ========== ЖАЛОБЫ ==========
+// Отправить жалобу на отзыв
+app.post('/api/reports', async (req, res) => {
+    try {
+        if (!req.session.userId) {
+            return res.status(401).json({ success: false, error: 'Необходимо авторизоваться' });
+        }
+
+        const { review_id, reason, comment } = req.body;
+
+        if (!review_id) {
+            return res.status(400).json({ success: false, error: 'ID отзыва обязателен' });
+        }
+
+        if (!reason || reason.trim().length < 3) {
+            return res.status(400).json({ success: false, error: 'Укажите причину жалобы' });
+        }
+
+        // Проверяем, не отправлял ли пользователь уже жалобу на этот отзыв
+        const [existing] = await db.query(
+            'SELECT id FROM reports WHERE user_id = ? AND review_id = ? AND status_id IN (1, 2)',
+            [req.session.userId, review_id]
+        );
+
+        if (existing.length > 0) {
+            return res.status(400).json({ success: false, error: 'Вы уже отправляли жалобу на этот отзыв' });
+        }
+
+        const [result] = await db.query(
+            `INSERT INTO reports (user_id, review_id, reason, comment, status_id, created_at)
+             VALUES (?, ?, ?, ?, 1, NOW())`,
+            [req.session.userId, review_id, reason.trim(), comment?.trim() || null]
+        );
+
+        res.json({ 
+            success: true, 
+            message: 'Жалоба отправлена администратору'
+        });
+
+    } catch (error) {
+        console.error('Ошибка создания жалобы:', error);
         res.status(500).json({ success: false, error: error.message });
     }
 });

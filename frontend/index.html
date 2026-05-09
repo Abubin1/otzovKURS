@@ -171,19 +171,24 @@
 
                 if (data.isAuthenticated && data.user) {
                     const user = data.user;
+                    
+                    const isAdmin = user.role === 'admin';
+                    
                     userInfoDiv.innerHTML = `
                         <span class="user-name">👋 ${user.name}</span>
+                        ${isAdmin ? '<a href="/admin.html" class="btn" style="background: #6C63FF; color: white; text-decoration: none; padding: 6px 14px; border-radius: 30px;">🛡️ Админ-панель</a>' : ''}
                         <button class="logout-btn" id="logoutBtn">Выйти</button>
                     `;
+                    
                     mainDiv.innerHTML = `
                         <div class="card">
                             <h2 style="margin-bottom: 16px;">✨ Добро пожаловать, ${user.name}!</h2>
-                            <p style="margin-bottom: 24px;">Say my name</p>
-                            <img src="https://i.pinimg.com/736x/a7/58/f3/a758f3111ca3a38dc91341e9be7e70ae.jpg" alt="жессе" style="max-width: 300px;">
+                            <p style="margin-bottom: 24px;">))</p>
+                            <img src="https://i.ytimg.com/vi/ZT4nfXVMSsQ/maxresdefault.jpg?sqp=-oaymwEmCIAKENAF8quKqQMa8AEB-AH-CYAC0AWKAgwIABABGHIgPChEMA8=&amp;rs=AOn4CLD3qwGOr4ejlwPsuSbo1knXdXARmQ" alt="))" style="max-width: 300px;">
                             <a href="/ProductPage.html" class="btn btn-outline" style="padding: 6px 18px;">Товары</a>
-                            </div>
                         </div>
                     `;
+                    
                     document.getElementById('logoutBtn')?.addEventListener('click', async () => {
                         await fetch('/api/logout', { method: 'POST' });
                         window.location.reload();
@@ -206,7 +211,7 @@
             } catch (err) {
                 console.error('Ошибка проверки сессии', err);
             }
-        }
+    }
         checkAuth();
     </script>
 </body>

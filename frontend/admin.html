@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Админ-панель — Честный Отзыв</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-dark">
+
+    <nav class="navbar navbar-dark bg-dark border-bottom border-secondary px-4">
+        <div class="container-fluid">
+            <a class="navbar-brand text-white fs-3" href="/">⭐️ Честный Отзыв</a>
+            <div class="d-flex gap-3 align-items-center">
+                <a href="/ProductPage.html" class="btn btn-outline-light btn-sm">📦 Товары</a>
+                <a href="/" class="btn btn-outline-secondary btn-sm">🏠 На главную</a>
+                <div id="userInfo" class="d-flex gap-2 align-items-center"></div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="text-white mb-0">🛡️ Панель администратора</h1>
+        </div>
+
+        <ul class="nav nav-tabs mb-4" id="adminTabs" role="tablist">
+            <li class="nav-item">
+                <button class="nav-link active text-white" data-bs-toggle="tab" data-bs-target="#categories">📂 Категории</button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link text-white" data-bs-toggle="tab" data-bs-target="#products">🛍️ Товары</button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link text-white" data-bs-toggle="tab" data-bs-target="#reports">⚠️ Жалобы</button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link text-white" data-bs-toggle="tab" data-bs-target="#users">👥 Пользователи</button>
+            </li>
+        </ul>
+
+        <div class="tab-content">
+            
+            <!-- ==================== КАТЕГОРИИ ==================== -->
+            <div class="tab-pane fade show active" id="categories">
+                <div class="card bg-dark border-secondary">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="card-title text-white mb-0">Управление категориями</h5>
+                            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
+                                <i class="fas fa-plus me-1"></i>Добавить
+                            </button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-dark text-white">
+                                <thead><tr><th>ID</th><th>Название</th><th>Действия</th></tr></thead>
+                                <tbody id="categoriesTable"><tr><td colspan="3" class="text-center text-secondary">Загрузка...</td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==================== ТОВАРЫ ==================== -->
+            <div class="tab-pane fade" id="products">
+                <div class="card bg-dark border-secondary">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="card-title text-white mb-0">Управление товарами</h5>
+                            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addProductModal">
+                                <i class="fas fa-plus me-1"></i>Добавить
+                            </button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-dark text-white">
+                                <thead><tr><th>ID</th><th>Название</th><th>Категория</th><th>Адрес</th><th>Рейтинг</th><th>Отзывы</th><th>Действия</th></tr></thead>
+                                <tbody id="productsTable"><tr><td colspan="7" class="text-center text-secondary">Загрузка......</td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==================== ЖАЛОБЫ ==================== -->
+            <div class="tab-pane fade" id="reports">
+                <div class="card bg-dark border-secondary">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="card-title text-white mb-0">Модерация жалоб</h5>
+                            <div class="d-flex gap-2">
+                                <select id="reportFilter" class="form-select form-select-sm bg-dark text-white border-secondary" style="width: auto;">
+                                    <option value="all">Все жалобы</option>
+                                    <option value="new">Новые</option>
+                                    <option value="processed">Обработанные</option>
+                                    <option value="mine">Мои обработки</option>
+                                </select>
+                                <button class="btn btn-sm btn-outline-primary" onclick="loadReports()"><i class="fas fa-sync-alt"></i></button>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-dark text-white table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Товар</th>
+                                        <th>Отзыв</th>
+                                        <th>Автор отзыва</th>
+                                        <th>Рейтинг</th>
+                                        <th>Жалоба от</th>
+                                        <th>Причина</th>
+                                        <th>Статус</th>
+                                        <th>Обработал</th>
+                                        <th>Дата жалобы</th>
+                                        <th>Действия</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="reportsTable">
+                                    <tr><td colspan="11" class="text-center text-secondary">Загрузка...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==================== ПОЛЬЗОВАТЕЛИ ==================== -->
+            <div class="tab-pane fade" id="users">
+                <div class="card bg-dark border-secondary">
+                    <div class="card-body">
+                        <h5 class="card-title text-white mb-3">Управление пользователями</h5>
+                        <div class="table-responsive">
+                            <table class="table table-dark text-white">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Имя</th>
+                                        <th>Email</th>
+                                        <th>Телефон</th>
+                                        <th>Город</th>
+                                        <th>Роль</th>
+                                        <th>Статус</th>
+                                        <th>Действия</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="usersTable">
+                                    <tr><td colspan="8" class="text-center text-secondary">Загрузка...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal подтверждения удаления -->
+    <div class="modal fade" id="confirmModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content bg-dark text-white border-secondary">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title">Подтверждение</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="confirmMessage">Вы уверены?</div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-danger" id="confirmBtn">Подтвердить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Добавить категорию -->
+    <div class="modal fade" id="addCategoryModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content bg-dark text-white border-secondary">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title">Добавить категорию</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="text" id="newCategoryName" class="form-control bg-secondary text-white border-0" placeholder="Название категории">
+                    <div id="categoryError" class="text-danger small mt-2"></div>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-primary" id="saveCategoryBtn">Сохранить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Добавить товар -->
+    <div class="modal fade" id="addProductModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content bg-dark text-white border-secondary">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title">Добавить товар</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-2"><label class="form-label small">Название</label><input type="text" id="productName" class="form-control bg-secondary text-white border-0"></div>
+                    <div class="mb-2"><label class="form-label small">Категория</label><select id="productCategory" class="form-select bg-secondary text-white border-0"><option value="">Выберите</option></select></div>
+                    <div class="mb-2"><label class="form-label small">Адрес</label><input type="text" id="productAddress" class="form-control bg-secondary text-white border-0"></div>
+                    <div class="mb-2"><label class="form-label small">Описание</label><textarea id="productDesc" class="form-control bg-secondary text-white border-0" rows="2"></textarea></div>
+                    <div id="productError" class="text-danger small"></div>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-primary" id="saveProductBtn">Сохранить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Просмотр полного отзыва -->
+    <div class="modal fade" id="viewReviewModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content bg-dark text-white border-secondary">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title">📝 Полный текст отзыва</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-2"><strong>Товар:</strong> <span id="viewProductName" class="text-secondary"></span></div>
+                        <div class="col-md-6 mb-2"><strong>Автор:</strong> <span id="viewAuthorName" class="text-secondary"></span></div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-2"><strong>Оценка:</strong> <span id="viewRating" class="text-warning"></span></div>
+                        <div class="col-md-6 mb-2"><strong>Дата:</strong> <span id="viewDate" class="text-secondary"></span></div>
+                    </div>
+                    <div class="mb-2"><strong>Текст отзыва:</strong></div>
+                    <div id="viewComment" class="text-secondary mt-1 p-2 bg-dark rounded" style="white-space: pre-wrap;"></div>
+                    <div class="row mt-2">
+                        <div class="col-md-6"><strong class="text-success">Плюсы:</strong><div id="viewPros" class="text-secondary mt-1 p-2 bg-dark rounded"></div></div>
+                        <div class="col-md-6"><strong class="text-danger">Минусы:</strong><div id="viewCons" class="text-secondary mt-1 p-2 bg-dark rounded"></div></div>
+                    </div>
+                    <div class="mt-2"><strong>Жалобы на этот отзыв:</strong></div>
+                    <div id="viewReportsList" class="mt-2 p-2 bg-secondary bg-opacity-25 rounded" style="max-height: 150px; overflow-y: auto;"></div>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-danger" id="banAuthorBtn">🚫 Забанить автора</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Блокировка пользователя -->
+    <div class="modal fade" id="banUserModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content bg-dark text-white border-secondary">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title">🚫 Блокировка пользователя</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Пользователь: <strong id="banUserName"></strong></p>
+                    <label class="form-label">Причина блокировки</label>
+                    <input type="text" id="banReason" class="form-control bg-secondary text-white border-0" placeholder="Нарушение правил...">
+                    <input type="hidden" id="banUserId">
+                    <div id="banError" class="text-danger small mt-2"></div>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-danger" id="confirmBanBtn">Заблокировать</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Сообщение -->
+    <div class="modal fade" id="messageModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content bg-dark text-white border-secondary">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title" id="messageTitle">Уведомление</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="messageText"></div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        let currentAdminId = null;
+        let currentAdminName = null;
+        let pendingDeleteAction = null;
+        let allCategories = [];
+        let allReports = [];
+
+        function showMessage(text, isError = false) {
+            document.getElementById('messageTitle').textContent = isError ? '❌ Ошибка' : '✅ Успех';
+            document.getElementById('messageText').innerHTML = text;
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('messageModal')).show();
+        }
+
+        function confirmAction(message, onConfirm) {
+            document.getElementById('confirmMessage').textContent = message;
+            const confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
+            const confirmBtn = document.getElementById('confirmBtn');
+            confirmBtn.onclick = () => {
+                confirmModal.hide();
+                onConfirm();
+            };
+            confirmModal.show();
+        }
+
+        async function checkAdminAndLoad() {
+            try {
+                const res = await fetch('/api/me');
+                const data = await res.json();
+                if (!data.isAuthenticated) { window.location.href = '/login.html'; return; }
+                if (data.user.role !== 'admin') { window.location.href = '/'; return; }
+                
+                currentAdminId = data.user.id;
+                currentAdminName = data.user.name;
+                
+                document.getElementById('userInfo').innerHTML = `<span class="badge bg-primary">👑 ${data.user.name}</span><button class="btn btn-danger btn-sm" id="logoutBtn">Выйти</button>`;
+                document.getElementById('logoutBtn')?.addEventListener('click', async () => {
+                    await fetch('/api/logout', { method: 'POST' });
+                    window.location.href = '/';
+                });
+                
+                await loadCategories();
+                await loadProducts();
+                await loadReports();
+                await loadUsers();
+            } catch (error) { window.location.href = '/'; }
+        }
+
+        // ========== ПОЛЬЗОВАТЕЛИ ==========
+        async function loadUsers() {
+            try {
+                const res = await fetch('/api/admin/users');
+                const data = await res.json();
+                if (data.success) {
+                    const tbody = document.getElementById('usersTable');
+                    tbody.innerHTML = data.users.map(user => `
+                        <tr>
+                            <td>${user.id}</td>
+                            <td>${escapeHtml(user.name)}</td>
+                            <td>${escapeHtml(user.email)}</td>
+                            <td>${escapeHtml(user.phone) || '-'}</td>
+                            <td>${escapeHtml(user.city) || '-'}</td>
+                            <td><span class="badge bg-${user.role === 'admin' ? 'danger' : user.role === 'business' ? 'info' : 'secondary'}">${user.role}</span></td>
+                            <td>${user.is_banned ? '<span class="badge bg-danger">Забанен</span>' : '<span class="badge bg-success">Активен</span>'}</td>
+                            <td>${!user.is_banned && user.role !== 'admin' ? `<button class="btn btn-warning btn-sm" onclick='openBanUser(${user.id}, "${escapeHtml(user.name)}")'><i class="fas fa-ban"></i> Забанить</button>` : user.is_banned ? '<span class="text-secondary">—</span>' : '-'}</td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (error) { console.error(error); }
+        }
+
+        window.openBanUser = (userId, userName) => {
+            document.getElementById('banUserId').value = userId;
+            document.getElementById('banUserName').innerHTML = escapeHtml(userName);
+            document.getElementById('banReason').value = '';
+            document.getElementById('banError').textContent = '';
+            new bootstrap.Modal(document.getElementById('banUserModal')).show();
+        };
+
+        document.getElementById('confirmBanBtn')?.addEventListener('click', async () => {
+            const userId = document.getElementById('banUserId').value;
+            const reason = document.getElementById('banReason').value.trim();
+            if (!reason) {
+                document.getElementById('banError').textContent = 'Укажите причину блокировки';
+                return;
+            }
+            try {
+                const res = await fetch(`/api/admin/users/${userId}/ban`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ reason })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    bootstrap.Modal.getInstance(document.getElementById('banUserModal')).hide();
+                    showMessage('Пользователь заблокирован');
+                    await loadUsers();
+                    await loadReports();
+                } else { showMessage(data.error, true); }
+            } catch (error) { showMessage('Ошибка', true); }
+        });
+
+        // ========== КАТЕГОРИИ ==========
+        async function loadCategories() {
+            try {
+                const res = await fetch('/api/admin/categories');
+                const data = await res.json();
+                if (data.success) {
+                    allCategories = data.categories;
+                    const tbody = document.getElementById('categoriesTable');
+                    tbody.innerHTML = allCategories.map(cat => `<tr><td>${cat.id}</td><td class="text-white">${escapeHtml(cat.name)}</td><td><button class="btn btn-danger btn-sm" onclick='deleteCategory(${cat.id}, "${escapeHtml(cat.name)}")'><i class="fas fa-trash"></i></button></td></tr>`).join('');
+                    const catSelect = document.getElementById('productCategory');
+                    if (catSelect) catSelect.innerHTML = '<option value="">Выберите категорию</option>' + allCategories.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
+                }
+            } catch (error) { showMessage('Ошибка загрузки категорий', true); }
+        }
+
+        document.getElementById('saveCategoryBtn')?.addEventListener('click', async () => {
+            const name = document.getElementById('newCategoryName').value.trim();
+            if (!name || name.length < 2) { document.getElementById('categoryError').textContent = 'Введите название (мин. 2 символа)'; return; }
+            document.getElementById('categoryError').textContent = '';
+            try {
+                const res = await fetch('/api/admin/categories', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name }) });
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById('newCategoryName').value = '';
+                    bootstrap.Modal.getInstance(document.getElementById('addCategoryModal')).hide();
+                    await loadCategories();
+                    showMessage('Категория добавлена');
+                } else { showMessage(data.error, true); }
+            } catch (error) { showMessage('Ошибка сервера', true); }
+        });
+
+        window.deleteCategory = (id, name) => {
+            confirmAction(`Удалить категорию "${name}"?`, async () => {
+                const res = await fetch(`/api/admin/categories/${id}`, { method: 'DELETE' });
+                const data = await res.json();
+                if (data.success) { await loadCategories(); showMessage('Категория удалена'); } 
+                else { showMessage(data.error, true); }
+            });
+        };
+
+        // ========== ТОВАРЫ ==========
+        async function loadProducts() {
+            try {
+                const res = await fetch('/api/admin/products');
+                const data = await res.json();
+                if (data.success) {
+                    const tbody = document.getElementById('productsTable');
+                    tbody.innerHTML = data.products.map(prod => `<tr><td>${prod.id}</td><td class="text-white">${escapeHtml(prod.name)}</td><td>${escapeHtml(prod.category_name || '-')}</td><td>${escapeHtml(prod.address) || '-'}</td><td>⭐ ${parseFloat(prod.avg_rating).toFixed(1)}</td><td>${prod.review_count || 0}</td><td><button class="btn btn-danger btn-sm" onclick='deleteProduct(${prod.id}, "${escapeHtml(prod.name)}")'><i class="fas fa-trash"></i></button></td></tr>`).join('');
+                }
+            } catch (error) { showMessage('Ошибка загрузки товаров', true); }
+        }
+
+        window.deleteProduct = (id, name) => {
+            confirmAction(`Удалить товар "${name}"? Все отзывы будут удалены.`, async () => {
+                const res = await fetch(`/api/admin/products/${id}`, { method: 'DELETE' });
+                const data = await res.json();
+                if (data.success) { await loadProducts(); showMessage('Товар удалён'); } 
+                else { showMessage(data.error, true); }
+            });
+        };
+
+        document.getElementById('saveProductBtn')?.addEventListener('click', async () => {
+            const name = document.getElementById('productName').value.trim();
+            const category_id = document.getElementById('productCategory').value;
+            if (!name) { document.getElementById('productError').textContent = 'Введите название'; return; }
+            if (!category_id) { document.getElementById('productError').textContent = 'Выберите категорию'; return; }
+            document.getElementById('productError').textContent = '';
+            const address = document.getElementById('productAddress').value.trim() || null;
+            const description = document.getElementById('productDesc').value.trim() || null;
+            try {
+                const res = await fetch('/api/admin/products', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, category_id, address, description }) });
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById('productName').value = '';
+                    document.getElementById('productAddress').value = '';
+                    document.getElementById('productDesc').value = '';
+                    bootstrap.Modal.getInstance(document.getElementById('addProductModal')).hide();
+                    await loadProducts();
+                    showMessage('Товар добавлен');
+                } else { showMessage(data.error, true); }
+            } catch (error) { showMessage('Ошибка сервера', true); }
+        });
+
+        // ========== ЖАЛОБЫ ==========
+        async function loadReports() {
+            try {
+                const res = await fetch('/api/admin/reports');
+                const data = await res.json();
+                if (data.success) {
+                    allReports = data.reports;
+                    applyReportFilter();
+                }
+            } catch (error) { console.error('Ошибка:', error); }
+        }
+
+        function applyReportFilter() {
+            const filter = document.getElementById('reportFilter').value;
+            let filtered = [...allReports];
+            if (filter === 'new') filtered = filtered.filter(r => r.status_name === 'новая');
+            else if (filter === 'processed') filtered = filtered.filter(r => r.status_name !== 'новая');
+            else if (filter === 'mine') filtered = filtered.filter(r => r.checked_by === currentAdminId);
+            
+            const statusColors = { 'новая': 'warning', 'принята': 'danger', 'отклонена': 'secondary' };
+            const tbody = document.getElementById('reportsTable');
+            if (filtered.length === 0) { tbody.innerHTML = '<tr><td colspan="11" class="text-center text-secondary">Нет жалоб</td></tr>'; return; }
+            
+            tbody.innerHTML = filtered.map(report => {
+                const reviewText = report.review_text || '';
+                const shortText = reviewText.length > 50 ? reviewText.substring(0, 50) + '...' : reviewText;
+                return `<tr>
+                    <td class="align-middle">${report.id}</td>
+                    <td class="align-middle">${escapeHtml(report.product_name)}</td>
+                    <td class="align-middle">
+                        <div class="d-flex gap-1 align-items-center">
+                            <small class="text-secondary">${escapeHtml(shortText)}</small>
+                            <button class="btn btn-info btn-sm" onclick='viewFullReview(${report.id})'><i class="fas fa-eye"></i></button>
+                        </div>
+                    </td>
+                    <td class="align-middle">${escapeHtml(report.review_author_name)} ${report.review_author_banned ? '<span class="badge bg-danger">Забанен</span>' : ''}</td>
+                    <td class="align-middle">⭐ ${report.review_rating}/5</td>
+                    <td class="align-middle">${escapeHtml(report.user_name)}</td>
+                    <td class="align-middle">${escapeHtml(report.reason)}</td>
+                    <td class="align-middle"><span class="badge bg-${statusColors[report.status_name]}">${report.status_name}</span></td>
+                    <td class="align-middle">${report.status_name !== 'новая' ? (report.checked_by_name ? `<span class="text-info"><i class="fas fa-user-shield"></i> ${escapeHtml(report.checked_by_name)}</span>` : '—') : '—'}</td>
+                    <td class="align-middle"><small>${new Date(report.created_at).toLocaleDateString()}</small></td>
+                    <td class="align-middle">${report.status_name === 'новая' ? `<button class="btn btn-success btn-sm me-1" onclick='handleReport(${report.id}, "принята")' title="Принять"><i class="fas fa-check"></i></button><button class="btn btn-secondary btn-sm" onclick='handleReport(${report.id}, "отклонена")' title="Отклонить"><i class="fas fa-times"></i></button>` : '-'}</td>
+                </tr>`;
+            }).join('');
+        }
+
+        window.viewFullReview = async (reportId) => {
+            const report = allReports.find(r => r.id === reportId);
+            if (!report) return;
+            
+            document.getElementById('viewProductName').innerHTML = escapeHtml(report.product_name);
+            document.getElementById('viewAuthorName').innerHTML = escapeHtml(report.review_author_name);
+            document.getElementById('viewRating').innerHTML = '⭐ ' + report.review_rating + '/5';
+            document.getElementById('viewDate').innerHTML = new Date(report.review_created_at).toLocaleString('ru-RU');
+            document.getElementById('viewComment').innerHTML = escapeHtml(report.review_text) || '<em class="text-secondary">Нет текста</em>';
+            document.getElementById('viewPros').innerHTML = escapeHtml(report.review_pros) || '<em class="text-secondary">—</em>';
+            document.getElementById('viewCons').innerHTML = escapeHtml(report.review_cons) || '<em class="text-secondary">—</em>';
+            
+            const allReportsForThisReview = allReports.filter(r => r.review_id === report.review_id);
+            const reportsHtml = allReportsForThisReview.map(r => `<div class="small border-bottom border-secondary pb-1 mb-1"><i class="fas fa-flag text-warning"></i> ${escapeHtml(r.user_name)}: ${escapeHtml(r.reason)}<br><span class="text-secondary">${r.status_name}${r.checked_by_name ? ` (${r.checked_by_name})` : ''}</span></div>`).join('');
+            document.getElementById('viewReportsList').innerHTML = reportsHtml || '<em class="text-secondary">Нет жалоб</em>';
+            
+            const banBtn = document.getElementById('banAuthorBtn');
+            banBtn.onclick = () => openBanUser(report.review_author_id, report.review_author_name);
+            
+            new bootstrap.Modal(document.getElementById('viewReviewModal')).show();
+        };
+
+        window.handleReport = async (reportId, status) => {
+            try {
+                const res = await fetch(`/api/admin/reports/${reportId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status, action: status === 'принята' ? 'hide_review' : null })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    await loadReports();
+                    showMessage(data.message);
+                } else { showMessage(data.error, true); }
+            } catch (error) { showMessage('Ошибка обработки', true); }
+        };
+
+        document.getElementById('reportFilter')?.addEventListener('change', () => applyReportFilter());
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;');
+        }
+
+        checkAdminAndLoad();
+    </script>
+</body>
+</html>

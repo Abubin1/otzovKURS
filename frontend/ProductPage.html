@@ -327,7 +327,7 @@
                 <div class="product-card" onclick="openProductCard(${product.id})">
                     <div class="product-title">${escapeHtml(product.name)}</div>
                     <div class="product-category">${getCategoryName(product.category_id)}</div>
-                    <div class="product-rating">⭐ ${product.avg_rating || 0} / 5</div>
+                    <div class="product-rating">⭐ ${parseFloat(product.avg_rating).toFixed(1)} / 5</div>
                     <div class="product-reviews">📝 ${product.review_count || 0} отзывов</div>
                     ${product.address ? `<div class="product-price">📍 ${escapeHtml(product.address)}</div>` : ''}
                 </div>
