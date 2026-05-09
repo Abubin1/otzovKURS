@@ -41,7 +41,7 @@ services:
       DB_PASSWORD: root
       DB_NAME: otzivBD
       PORT: 3000
-      SESSION_SECRET: otziv_super_secret_key_2025
+      SESSION_SECRET: superpupermegasecret
     depends_on:
       - mysql
     volumes:
