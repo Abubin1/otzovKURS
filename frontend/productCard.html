@@ -18,6 +18,10 @@
         .review-card {
             background: #0B1120;
             border-left: 3px solid #6C63FF;
+            transition: all 0.3s ease;
+        }
+        .review-card:hover {
+            transform: translateX(5px);
         }
         .rating-star {
             cursor: pointer;
@@ -31,6 +35,30 @@
         }
         .star-gray {
             color: #4B5563;
+        }
+        @keyframes likeAnimation {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        .like-animation {
+            animation: likeAnimation 0.3s ease;
+        }
+        .btn-success {
+            background-color: #28a745;
+            border-color: #28a745;
+        }
+        .btn-outline-success:hover {
+            background-color: #28a745;
+            border-color: #28a745;
+        }
+        .btn-danger {
+            background-color: #dc3545;
+            border-color: #dc3545;
+        }
+        .btn-outline-danger:hover {
+            background-color: #dc3545;
+            border-color: #dc3545;
         }
     </style>
 </head>
@@ -157,7 +185,7 @@
         let currentUser = null;
 
         if (!productId) {
-            document.getElementById('content').innerHTML = '<div class="alert alert-danger m-3"> Товар не указан</div>';
+            document.getElementById('content').innerHTML = '<div class="alert alert-danger m-3">❌ Товар не указан</div>';
         } else {
             checkAuthAndLoad();
         }
@@ -170,7 +198,7 @@
                 if (data.isAuthenticated) {
                     currentUser = data.user;
                     document.getElementById('userInfo').innerHTML = `
-                        <span class="badge bg-primary">👋 ${currentUser.name}</span>
+                        <span class="badge bg-primary">👋 ${escapeHtml(currentUser.name)}</span>
                         <button class="btn btn-danger btn-sm" id="logoutBtn">Выйти</button>
                     `;
                     document.getElementById('logoutBtn')?.addEventListener('click', async () => {
@@ -228,27 +256,165 @@
 
         function renderReviews(reviews) {
             if (!reviews || reviews.length === 0) {
-                return '<div class="text-center text-secondary py-5">Пока нет отзывов. Будьте первым!</div>';
+                return '<div class="text-center text-secondary py-5">🤔 Пока нет отзывов. Будьте первым!</div>';
             }
             
-            return reviews.map(review => `
-                <div class="card review-card mb-3">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <strong class="text-white">${escapeHtml(review.author_name)}</strong>
-                                <div class="text-warning">⭐ ${review.rating} / 5</div>
+            return reviews.map(review => {
+                const userLiked = review.user_liked === 1;
+                const userDisliked = review.user_disliked === 1;
+                const likesCount = review.likes_count || 0;
+                const dislikesCount = review.dislikes_count || 0;
+                
+                return `
+                    <div class="card review-card mb-3" data-review-id="${review.id}">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <div class="d-flex align-items-center gap-2 mb-2">
+                                        <strong class="text-white">${escapeHtml(review.author_name)}</strong>
+                                        <div class="text-warning">⭐ ${review.rating} / 5</div>
+                                    </div>
+                                    <p class="text-secondary mt-2">${escapeHtml(review.comment) || 'Без комментария'}</p>
+                                    <div class="d-flex justify-content-between align-items-center mt-3">
+                                        <div class="text-secondary small">${new Date(review.created_at).toLocaleDateString('ru-RU')}</div>
+                                        <div class="d-flex gap-3 align-items-center">
+                                            ${currentUser && currentUser.id !== review.author_id ? `
+                                                <div class="d-flex gap-2 align-items-center">
+                                                    <button class="btn btn-sm ${userLiked ? 'btn-success' : 'btn-outline-success'}" 
+                                                            onclick="toggleLike(${review.id}, true, this)">
+                                                        <i class="fas fa-thumbs-up"></i>
+                                                        <span class="ms-1">${likesCount}</span>
+                                                    </button>
+                                                    <button class="btn btn-sm ${userDisliked ? 'btn-danger' : 'btn-outline-danger'}" 
+                                                            onclick="toggleLike(${review.id}, false, this)">
+                                                        <i class="fas fa-thumbs-down"></i>
+                                                        <span class="ms-1">${dislikesCount}</span>
+                                                    </button>
+                                                </div>
+                                            ` : `
+                                                <div class="d-flex gap-2 align-items-center">
+                                                    <span class="text-success small">
+                                                        <i class="fas fa-thumbs-up"></i> ${likesCount}
+                                                    </span>
+                                                    <span class="text-danger small">
+                                                        <i class="fas fa-thumbs-down"></i> ${dislikesCount}
+                                                    </span>
+                                                </div>
+                                            `}
+                                            ${currentUser && currentUser.id !== review.author_id ? 
+                                                `<button class="btn btn-outline-warning btn-sm" onclick="openReportModal(${review.id})">
+                                                    <i class="fas fa-flag"></i>
+                                                </button>` : ''
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            ${currentUser && currentUser.id !== review.author_id ? `<button class="btn btn-outline-danger btn-sm" onclick="openReportModal(${review.id})"><i class="fas fa-flag"></i> Жалоба</button>` : ''}
                         </div>
-                        <p class="text-secondary mt-2">${escapeHtml(review.comment) || 'Без комментария'}</p>
-                        ${review.pros ? `<div class="text-success small"><i class="fas fa-thumbs-up"></i> ${escapeHtml(review.pros)}</div>` : ''}
-                        ${review.cons ? `<div class="text-danger small"><i class="fas fa-thumbs-down"></i> ${escapeHtml(review.cons)}</div>` : ''}
-                        <div class="text-secondary small mt-2">${new Date(review.created_at).toLocaleDateString('ru-RU')}</div>
                     </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         }
+
+        // Функция для лайка/дизлайка
+        window.toggleLike = async (reviewId, isLike, buttonElement) => {
+    if (!currentUser) {
+        showMessage('Войдите, чтобы оценивать отзывы', true);
+        return;
+    }
+    
+    // Находим карточку отзыва
+    const reviewCard = buttonElement.closest('.review-card');
+    const likeBtn = reviewCard.querySelector('.btn-outline-success, .btn-success');
+    const dislikeBtn = reviewCard.querySelector('.btn-outline-danger, .btn-danger');
+    
+    // Проверяем текущее состояние
+    const isCurrentlyLiked = likeBtn && likeBtn.classList.contains('btn-success');
+    const isCurrentlyDisliked = dislikeBtn && dislikeBtn.classList.contains('btn-danger');
+    
+    // Определяем, нужно ли удалить оценку
+    let shouldRemove = false;
+    if (isLike && isCurrentlyLiked) {
+        shouldRemove = true; // Убираем лайк
+    } else if (!isLike && isCurrentlyDisliked) {
+        shouldRemove = true; // Убираем дизлайк
+    }
+    
+    try {
+        let response;
+        if (shouldRemove) {
+            // Отправляем запрос на удаление оценки
+            response = await fetch(`/api/reviews/like/${reviewId}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' }
+            });
+        } else {
+            // Отправляем запрос на установку оценки
+            response = await fetch('/api/reviews/like', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    review_id: reviewId,
+                    is_like: isLike
+                })
+            });
+        }
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Обновляем UI без перезагрузки всей страницы
+            if (shouldRemove) {
+                // Снимаем выделение с кнопки
+                if (isLike) {
+                    likeBtn.classList.remove('btn-success');
+                    likeBtn.classList.add('btn-outline-success');
+                } else {
+                    dislikeBtn.classList.remove('btn-danger');
+                    dislikeBtn.classList.add('btn-outline-danger');
+                }
+            } else {
+                // Снимаем выделение с противоположной кнопки (если была)
+                if (isLike) {
+                    // Убираем выделение с дизлайка, если он был
+                    if (dislikeBtn.classList.contains('btn-danger')) {
+                        dislikeBtn.classList.remove('btn-danger');
+                        dislikeBtn.classList.add('btn-outline-danger');
+                    }
+                    // Добавляем выделение лайку
+                    likeBtn.classList.remove('btn-outline-success');
+                    likeBtn.classList.add('btn-success');
+                } else {
+                    // Убираем выделение с лайка, если он был
+                    if (likeBtn.classList.contains('btn-success')) {
+                        likeBtn.classList.remove('btn-success');
+                        likeBtn.classList.add('btn-outline-success');
+                    }
+                    // Добавляем выделение дизлайку
+                    dislikeBtn.classList.remove('btn-outline-danger');
+                    dislikeBtn.classList.add('btn-danger');
+                }
+            }
+            
+            // Обновляем счетчики
+            if (likeBtn.querySelector('.ms-1')) {
+                likeBtn.querySelector('.ms-1').textContent = data.likes_count || 0;
+            }
+            if (dislikeBtn.querySelector('.ms-1')) {
+                dislikeBtn.querySelector('.ms-1').textContent = data.dislikes_count || 0;
+            }
+            
+            // Анимация
+            buttonElement.classList.add('like-animation');
+            setTimeout(() => buttonElement.classList.remove('like-animation'), 300);
+        } else {
+            showMessage(data.error || 'Ошибка при обработке оценки', true);
+        }
+    } catch (error) {
+        console.error('Error toggling like:', error);
+        showMessage('Ошибка при обработке оценки', true);
+    }
+};
 
         window.openReviewModal = () => {
             document.getElementById('reviewRating').value = 0;

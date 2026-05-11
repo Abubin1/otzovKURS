@@ -293,7 +293,7 @@ app.get('/ProductPage.html', (req, res) => {
 
 
 
-// Получить один товар с отзывами и НАЗВАНИЕМ КАТЕГОРИИ
+// ========== ПОЛУЧИТЬ ТОВАР С ОТЗЫВАМИ И ЛАЙКАМИ/ДИЗЛАЙКАМИ ==========
 app.get('/api/products/:id', async (req, res) => {
     try {
         const [products] = await db.query(`
@@ -301,7 +301,7 @@ app.get('/api/products/:id', async (req, res) => {
                 p.*, 
                 c.name as category_name,
                 COALESCE(AVG(r.rating), 0) as avg_rating,
-                COUNT(r.id) as review_count
+                COUNT(DISTINCT r.id) as review_count
             FROM products p
             LEFT JOIN categories c ON p.category_id = c.id
             LEFT JOIN reviews r ON p.id = r.product_id AND r.is_hidden = FALSE
@@ -313,11 +313,28 @@ app.get('/api/products/:id', async (req, res) => {
             return res.status(404).json({ success: false, error: 'Товар не найден' });
         }
         
+        // Получаем отзывы с подсчетом лайков и дизлайков
         const [reviews] = await db.query(`
-            SELECT r.*, u.name as author_name 
+            SELECT 
+                r.*,
+                u.name as author_name,
+                COUNT(CASE WHEN rl.is_like = TRUE THEN 1 END) as likes_count,
+                COUNT(CASE WHEN rl.is_like = FALSE THEN 1 END) as dislikes_count,
+                ${req.session.userId ? `
+                EXISTS(
+                    SELECT 1 FROM review_likes 
+                    WHERE review_id = r.id AND user_id = ${req.session.userId} AND is_like = TRUE
+                ) as user_liked,
+                EXISTS(
+                    SELECT 1 FROM review_likes 
+                    WHERE review_id = r.id AND user_id = ${req.session.userId} AND is_like = FALSE
+                ) as user_disliked
+                ` : 'FALSE as user_liked, FALSE as user_disliked'}
             FROM reviews r
             JOIN users u ON r.author_id = u.id
+            LEFT JOIN review_likes rl ON rl.review_id = r.id
             WHERE r.product_id = ? AND r.is_hidden = FALSE
+            GROUP BY r.id
             ORDER BY r.created_at DESC
         `, [req.params.id]);
         
@@ -331,6 +348,7 @@ app.get('/api/products/:id', async (req, res) => {
         res.status(500).json({ success: false, error: error.message });
     }
 });
+
 
 // ========== АДМИН ПАНЕЛЬ - ПРОВЕРКА РОЛИ ==========
 // Middleware для проверки прав администратора
@@ -747,5 +765,138 @@ app.post('/api/reports', async (req, res) => {
     } catch (error) {
         console.error('Ошибка создания жалобы:', error);
         res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+
+
+
+// ========== ЛАЙК/ДИЗЛАЙК ОТЗЫВА ==========
+app.post('/api/reviews/like', async (req, res) => {
+    try {
+        const { review_id, is_like } = req.body; // is_like: true=лайк, false=дизлайк
+        const user_id = req.session.userId;
+        
+        if (!user_id) {
+            return res.status(401).json({ success: false, error: 'Не авторизован' });
+        }
+        
+        // Проверяем, не оценивает ли пользователь свой отзыв
+        const [reviewCheck] = await db.query(
+            'SELECT author_id FROM reviews WHERE id = ?',
+            [review_id]
+        );
+        
+        if (reviewCheck.length === 0) {
+            return res.status(404).json({ success: false, error: 'Отзыв не найден' });
+        }
+        
+        if (reviewCheck[0].author_id === user_id) {
+            return res.status(400).json({ success: false, error: 'Нельзя оценивать свой отзыв' });
+        }
+        
+        // Проверяем, есть ли уже оценка пользователя
+        const [existing] = await db.query(
+            'SELECT is_like FROM review_likes WHERE user_id = ? AND review_id = ?',
+            [user_id, review_id]
+        );
+        
+        if (existing.length > 0) {
+            // Если пользователь уже оценил
+            const currentLike = existing[0].is_like;
+            
+            if (currentLike === is_like) {
+                // Если нажал ту же кнопку - удаляем оценку
+                await db.query(
+                    'DELETE FROM review_likes WHERE user_id = ? AND review_id = ?',
+                    [user_id, review_id]
+                );
+            } else {
+                // Если меняет лайк на дизлайк или наоборот
+                await db.query(
+                    'UPDATE review_likes SET is_like = ? WHERE user_id = ? AND review_id = ?',
+                    [is_like, user_id, review_id]
+                );
+            }
+        } else {
+            // Новой оценки нет - добавляем
+            await db.query(
+                'INSERT INTO review_likes (user_id, review_id, is_like) VALUES (?, ?, ?)',
+                [user_id, review_id, is_like]
+            );
+        }
+        
+        // Подсчитываем актуальное количество лайков и дизлайков
+        const [counts] = await db.query(`
+            SELECT 
+                COUNT(CASE WHEN is_like = TRUE THEN 1 END) as likes,
+                COUNT(CASE WHEN is_like = FALSE THEN 1 END) as dislikes
+            FROM review_likes 
+            WHERE review_id = ?
+        `, [review_id]);
+        
+        // Обновляем счетчики в таблице reviews
+        await db.query(
+            'UPDATE reviews SET likes_count = ? WHERE id = ?',
+            [counts[0].likes, review_id]
+        );
+        
+        res.json({ 
+            success: true, 
+            is_liked: is_like,
+            likes_count: counts[0].likes,
+            dislikes_count: counts[0].dislikes
+        });
+        
+    } catch (error) {
+        console.error('Ошибка при обработке оценки:', error);
+        res.status(500).json({ success: false, error: 'Ошибка сервера' });
+    }
+});
+
+
+
+
+
+
+
+
+
+// ========== УДАЛИТЬ ЛАЙК/ДИЗЛАЙК ==========
+app.delete('/api/reviews/like/:review_id', async (req, res) => {
+    try {
+        const { review_id } = req.params;
+        const user_id = req.session.userId;
+        
+        if (!user_id) {
+            return res.status(401).json({ success: false, error: 'Не авторизован' });
+        }
+        
+        // Удаляем запись о лайке/дизлайке
+        await db.query(
+            'DELETE FROM review_likes WHERE user_id = ? AND review_id = ?',
+            [user_id, review_id]
+        );
+        
+        // Подсчитываем общее количество лайков
+        const [likesCount] = await db.query(
+            'SELECT COUNT(*) as count FROM review_likes WHERE review_id = ? AND is_like = TRUE',
+            [review_id]
+        );
+        
+        // Обновляем счетчик лайков в таблице reviews
+        await db.query(
+            'UPDATE reviews SET likes_count = ? WHERE id = ?',
+            [likesCount[0].count, review_id]
+        );
+        
+        res.json({ 
+            success: true, 
+            likes_count: likesCount[0].count
+        });
+        
+    } catch (error) {
+        console.error('Ошибка при удалении лайка:', error);
+        res.status(500).json({ success: false, error: 'Ошибка сервера' });
     }
 });
