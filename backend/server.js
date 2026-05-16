@@ -259,7 +259,7 @@ app.get('/api/categories', async (req, res) => {
         res.status(500).json({success: false, error: error.message});
     }
 });
-// 2. Получить все товары
+// Получить все товары 
 app.get('/api/products', async (req, res) => {
     try {
         const [products] = await db.query(`
@@ -270,18 +270,37 @@ app.get('/api/products', async (req, res) => {
                 p.address, 
                 p.description,
                 COALESCE(AVG(r.rating), 0) as avg_rating,
-                COUNT(r.id) as review_count
+                COUNT(DISTINCT r.id) as review_count
             FROM products p
             LEFT JOIN reviews r ON p.id = r.product_id AND r.is_hidden = FALSE
             GROUP BY p.id
             ORDER BY p.name
         `);
-        res.json({ success: true, products });
+        
+        // Для каждого товара получаем первые 10 тегов
+        const productsWithTags = await Promise.all(products.map(async (product) => {
+            const [tags] = await db.query(`
+                SELECT pt.tag_id
+                FROM product_tags pt
+                WHERE pt.product_id = ?
+                GROUP BY pt.tag_id
+                ORDER BY COUNT(pt.user_id) DESC
+                LIMIT 10
+            `, [product.id]);
+            
+            return {
+                ...product,
+                tags: tags.map(t => t.tag_id)
+            };
+        }));
+        
+        res.json({ success: true, products: productsWithTags });
     } catch (error) {
         console.error('Ошибка:', error);
         res.status(500).json({ success: false, error: error.message });
     }
 });
+
 
 // 3. Раздача catalog.html
 app.get('/ProductPage.html', (req, res) => {
@@ -898,5 +917,161 @@ app.delete('/api/reviews/like/:review_id', async (req, res) => {
     } catch (error) {
         console.error('Ошибка при удалении лайка:', error);
         res.status(500).json({ success: false, error: 'Ошибка сервера' });
+    }
+});
+
+    //========== ТЕГИ  ==========
+    //получить все теги
+    app.get('/api/tags', async (req, res) => {
+    try {
+        const [tags] = await db.query('SELECT id, name FROM tags ORDER BY name');
+        res.json({ success: true, tags });
+    } catch (error) {
+        console.error('Ошибка получения тегов:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+//получить 10 тегов товара с самыми высокими голосами
+app.get('/api/products/:id/tags', async (req, res) => {
+    try {
+        const productId = req.params.id;
+        const userId = req.session.userId || null;
+        
+        const [tags] = await db.query(`
+            SELECT 
+                t.id,
+                t.name,
+                COUNT(pt.user_id) as votes,
+                ${userId ? `EXISTS(
+                    SELECT 1 FROM product_tags 
+                    WHERE product_id = ? AND tag_id = t.id AND user_id = ?
+                )` : 'FALSE'} as user_voted
+            FROM tags t
+            INNER JOIN product_tags pt ON t.id = pt.tag_id AND pt.product_id = ?
+            GROUP BY t.id, t.name
+            ORDER BY votes DESC, t.name ASC
+            LIMIT 10
+        `, userId ? [productId, userId, productId] : [productId, productId]);
+        
+        res.json({ 
+            success: true, 
+            topTags: tags,
+            otherTags: [], 
+            allTags: tags
+        });
+    } catch (error) {
+        console.error('Ошибка получения тегов товара:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+//Голосование за тег
+app.post('/api/products/:productId/tags/:tagId/vote', async (req, res) => {
+    try {
+        if (!req.session.userId) {
+            return res.status(401).json({ success: false, error: 'Необходимо авторизоваться' });
+        }
+        
+        const { productId, tagId } = req.params;
+        const userId = req.session.userId;
+        
+        // проверяем существует ли уже голос
+        const [existing] = await db.query(
+            'SELECT * FROM product_tags WHERE product_id = ? AND tag_id = ? AND user_id = ?',
+            [productId, tagId, userId]
+        );
+        
+        let action = '';
+        let newVoteCount = 0;
+        
+        if (existing.length === 0) {
+            // Если нет, то доабвляем голос
+            await db.query(
+                'INSERT INTO product_tags (product_id, tag_id, user_id, voted_at) VALUES (?, ?, ?, NOW())',
+                [productId, tagId, userId]
+            );
+            action = 'added';
+        } else {
+            // Иначе убираем
+            await db.query(
+                'DELETE FROM product_tags WHERE product_id = ? AND tag_id = ? AND user_id = ?',
+                [productId, tagId, userId]
+            );
+            action = 'removed';
+        }
+        
+        // Считаем сколько проголосовало за тэг
+        const [voteCount] = await db.query(
+            'SELECT COUNT(*) as count FROM product_tags WHERE product_id = ? AND tag_id = ?',
+            [productId, tagId]
+        );
+        newVoteCount = voteCount[0].count;
+        
+        res.json({ 
+            success: true, 
+            action,
+            votes: newVoteCount,
+            message: action === 'added' ? 'Голос учтён' : 'Голос отменён'
+        });
+        
+    } catch (error) {
+        console.error('Ошибка голосования:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+
+//Добавить новый тег
+app.post('/api/admin/tags', isAdmin, async (req, res) => {
+    try {
+        const { name } = req.body;
+        
+        // Валидация
+        if (!name || name.trim().length < 2) {
+            return res.status(400).json({ success: false, error: 'Название тега должно быть не менее 2 символов' });
+        }
+        if (name.trim().length > 50) {
+            return res.status(400).json({ success: false, error: 'Название тега не более 50 символов' });
+        }
+        
+        // Проверяем, нет ли уже такого тега
+        const [existing] = await db.query('SELECT id FROM tags WHERE name = ?', [name.trim()]);
+        if (existing.length > 0) {
+            return res.status(400).json({ success: false, error: 'Тег с таким названием уже существует' });
+        }
+        
+        const [result] = await db.query('INSERT INTO tags (name) VALUES (?)', [name.trim()]);
+        
+        res.json({ 
+            success: true, 
+            message: 'Тег добавлен',
+            tag: { id: result.insertId, name: name.trim() }
+        });
+        
+    } catch (error) {
+        console.error('Ошибка создания тега:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+//удалить тэг
+app.delete('/api/admin/tags/:id', isAdmin, async (req, res) => {
+    try {
+        const tagId = req.params.id;
+        
+        // Проверка на сущетсвование тэга(на всякий)
+        const [existing] = await db.query('SELECT id, name FROM tags WHERE id = ?', [tagId]);
+        if (existing.length === 0) {
+            return res.status(404).json({ success: false, error: 'Тег не найден' });
+        }
+        
+        // Удаляем
+        await db.query('DELETE FROM tags WHERE id = ?', [tagId]);
+        
+        res.json({ success: true, message: `Тег "${existing[0].name}" удалён` });
+        
+    } catch (error) {
+        console.error('Ошибка удаления тега:', error);
+        res.status(500).json({ success: false, error: error.message });
     }
 });

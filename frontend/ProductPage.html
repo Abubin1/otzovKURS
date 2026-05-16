@@ -4,25 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Каталог товаров — Честный Отзыв</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
         body {
-            font-family: 'Inter', sans-serif;
             background: #0B1120;
             color: #E2E8F0;
+            font-family: 'Inter', sans-serif;
         }
         .navbar {
-            background: #111827;
+            background: #111827 !important;
             border-bottom: 1px solid #2D3748;
-            padding: 16px 40px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
         }
         .logo {
             font-size: 24px;
@@ -33,119 +26,14 @@
             color: transparent;
             text-decoration: none;
         }
-        .back-btn {
-            background: #1F2A48;
-            padding: 8px 20px;
-            border-radius: 30px;
-            text-decoration: none;
-            color: #E2E8F0;
-            font-weight: 500;
-            transition: 0.2s;
-        }
-        .back-btn:hover {
-            background: #2D3A5E;
-        }
-        .user-info {
-            display: flex;
-            gap: 20px;
-            align-items: center;
-        }
-        .user-name {
-            background: #1F2A48;
-            padding: 6px 14px;
-            border-radius: 40px;
-            font-size: 14px;
-        }
-        .logout-btn {
-            background: #EF4444;
-            border: none;
-            padding: 6px 16px;
-            border-radius: 30px;
-            color: white;
-            font-weight: 500;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .logout-btn:hover {
-            background: #DC2626;
-        }
-        .container {
-            max-width: 1300px;
-            margin: 40px auto;
-            padding: 0 24px;
-        }
-        h1 {
-            font-size: 32px;
-            margin-bottom: 30px;
-            background: linear-gradient(135deg, #FFFFFF, #A78BFA);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-        }
-        .filters {
-            background: #1A2335;
-            border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 30px;
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-        .filter-group {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .filter-group label {
-            font-weight: 500;
-            color: #94A3B8;
-        }
-        select, input {
-            background: #0B1120;
-            border: 1px solid #2D3748;
-            padding: 8px 16px;
-            border-radius: 30px;
-            color: #E2E8F0;
-            font-family: 'Inter', sans-serif;
-            cursor: pointer;
-        }
-        .search-input {
-            width: 200px;
-        }
-        .reset-btn {
-            background: #EF4444;
-            border: none;
-            padding: 8px 20px;
-            border-radius: 30px;
-            color: white;
-            cursor: pointer;
-            font-weight: 500;
-        }
-        .reset-btn:hover {
-            background: #DC2626;
-        }
-        .products-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 24px;
-        }
         .product-card {
             background: #1A2335;
-            border-radius: 20px;
-            padding: 20px;
             border: 1px solid #2D3748;
             transition: 0.2s;
-            cursor: pointer;
         }
         .product-card:hover {
             transform: translateY(-5px);
             border-color: #6C63FF;
-        }
-        .product-img {
-            font-size: 64px;
-            text-align: center;
-            margin-bottom: 16px;
         }
         .product-title {
             font-size: 18px;
@@ -155,109 +43,125 @@
         .product-category {
             font-size: 12px;
             color: #A78BFA;
-            margin-bottom: 12px;
         }
         .product-rating {
             font-size: 14px;
             color: #FBBF24;
-            margin-bottom: 8px;
         }
-        .product-reviews {
+        .product-reviews, .product-address {
             font-size: 12px;
-            color: #94A3B8;
         }
-        .product-price {
-            font-size: 20px;
-            font-weight: 700;
+        .product-address {
             color: #6C63FF;
-            margin-top: 12px;
         }
-        .loading {
-            text-align: center;
-            padding: 60px;
-            font-size: 18px;
+        .tag-btn {
+            background: #0B1120;
+            border: 1px solid #2D3748;
             color: #94A3B8;
+            transition: 0.2s;
+        }
+        .tag-btn:hover {
+            border-color: #6C63FF;
+            color: #E2E8F0;
+        }
+        .tag-btn.active {
+            background: #6C63FF;
+            border-color: #6C63FF;
+            color: white;
+        }
+        .selected-tag-badge {
+            background: #6C63FF;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .selected-tag-badge button {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            opacity: 0.8;
+        }
+        .selected-tag-badge button:hover {
+            opacity: 1;
         }
         .no-results {
-            text-align: center;
-            padding: 60px;
             background: #1A2335;
-            border-radius: 20px;
-            grid-column: 1 / -1;
         }
-        @media (max-width: 700px) {
-            .navbar {
-                padding: 16px 20px;
-            }
-            .filters {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .search-input {
-                width: 100%;
+        @media (max-width: 576px) {
+            .products-grid {
+                grid-template-columns: 1fr !important;
             }
         }
     </style>
 </head>
 <body>
-    <div class="navbar">
-        <div style="display: flex; align-items: center; gap: 24px;">
-            <a href="/" class="logo">⭐️ Честный Отзыв</a>
-            <a href="/" class="back-btn">← На главную</a>
+
+    <!-- Навбар-->
+    <div id="navbar-container"></div>
+
+    <div class="container py-3">
+        <h1 class="mb-4" style="background: linear-gradient(135deg, #FFFFFF, #A78BFA); -webkit-background-clip: text; background-clip: text; color: transparent;">
+            <i class="fas fa-store"></i> Каталог товаров
+        </h1>
+
+        <!-- Фильтры: поиск + категория + сброс -->
+        <div class="bg-dark bg-opacity-25 rounded-4 p-4 mb-4" style="background: #1A2335;">
+            <div class="row g-3">
+                <div class="col-md-5 col-lg-6">
+                    <label class="form-label text-secondary small fw-semibold">
+                        <i class="fas fa-search"></i> Поиск:
+                    </label>
+                    <input type="text" id="searchInput" class="form-control bg-dark text-white border-secondary rounded-pill" placeholder="Название товара...">
+                </div>
+                <div class="col-md-4 col-lg-4">
+                    <label class="form-label text-secondary small fw-semibold">
+                        <i class="fas fa-folder"></i> Категория:
+                    </label>
+                    <select id="categoryFilter" class="form-select bg-dark text-white border-secondary rounded-pill">
+                        <option value="all">Все категории</option>
+                    </select>
+                </div>
+                <div class="col-md-3 col-lg-2">
+                    <label class="form-label text-secondary small fw-semibold invisible">Сброс</label>
+                    <button id="resetBtn" class="btn btn-danger w-100 rounded-pill">
+                        <i class="fas fa-undo-alt"></i> Сбросить
+                    </button>
+                </div>
+            </div>
         </div>
-        <div class="user-info" id="userInfo"></div>
+
+        <!-- фильтрация по тегам -->
+        <div class="rounded-4 p-4 mb-4" style="background: #1A2335;">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
+                <h6 class="text-white mb-0"><i class="fas fa-tags"></i> Фильтр по тегам</h6>
+                <button class="btn btn-sm btn-outline-secondary rounded-pill" id="clearTagFilter">
+                    <i class="fas fa-times"></i> Сбросить теги
+                </button>
+            </div>
+            
+            <input type="text" id="tagSearchInput" class="form-control form-control-sm bg-dark text-white border-secondary rounded-pill mb-3" 
+                   style="max-width: 250px;" placeholder="🔍 Поиск тега...">
+            
+            <div id="filterTagsContainer" class="d-flex flex-wrap gap-2 mb-3">
+                <span class="text-secondary">Загрузка тегов...</span>
+            </div>
+            
+            <div id="selectedTagsContainer" class="d-flex flex-wrap gap-2"></div>
+        </div>
+
+        <!-- Сетка товаров -->
+        <div id="productsGrid" class="products-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px;"></div>
     </div>
 
-    <div class="container">
-        <h1>🛍️ Каталог товаров</h1>
-
-        <div class="filters">
-            <div class="filter-group">
-                <label>🔍 Поиск:</label>
-                <input type="text" id="searchInput" class="search-input" placeholder="Название товара...">
-            </div>
-            <div class="filter-group">
-                <label>📂 Категория:</label>
-                <select id="categoryFilter">
-                    <option value="all">Все категории</option>
-                </select>
-            </div>
-            <button id="resetBtn" class="reset-btn">Сбросить фильтры</button>
-        </div>
-
-        <div id="productsGrid" class="products-grid">
-            <div class="loading">Загрузка товаров...</div>
-        </div>
-    </div>
-
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    
     <script>
         let allProducts = [];
         let categories = [];
-
-        async function checkAuth() {
-            try {
-                const res = await fetch('/api/me');
-                const data = await res.json();
-                const userInfoDiv = document.getElementById('userInfo');
-
-                if (data.isAuthenticated && data.user) {
-                    const user = data.user;
-                    userInfoDiv.innerHTML = `
-                        <span class="user-name">👋 ${user.name}</span>
-                        <button class="logout-btn" id="logoutBtn">Выйти</button>
-                    `;
-                    document.getElementById('logoutBtn')?.addEventListener('click', async () => {
-                        await fetch('/api/logout', { method: 'POST' });
-                        window.location.reload();
-                    });
-                } else {
-                    userInfoDiv.innerHTML = `<a href="/login.html" class="logout-btn" style="background: #6C63FF; text-decoration: none;">Войти</a>`;
-                }
-            } catch (err) {
-                console.error('Ошибка проверки сессии', err);
-            }
-        }
-        checkAuth();
+        let allFilterTags = [];     // Все теги для фильтрации
+        let selectedTagIds = [];    // Выбранные айди тегов
 
         // Загрузка категорий из БД
         async function loadCategories() {
@@ -286,13 +190,13 @@
                 const data = await response.json();
                 if (data.success) {
                     allProducts = data.products;
-                    renderProducts();
+                    applyAllFilters(); // применяем все фильтры сразу
                 } else {
-                    document.getElementById('productsGrid').innerHTML = '<div class="no-results">❌ Ошибка загрузки товаров</div>';
+                    document.getElementById('productsGrid').innerHTML = '<div class="no-results p-5 text-center rounded-4">❌ Ошибка загрузки товаров</div>';
                 }
             } catch (error) {
                 console.error('Ошибка загрузки товаров:', error);
-                document.getElementById('productsGrid').innerHTML = '<div class="no-results">❌ Не удалось загрузить товары. Проверьте соединение с сервером.</div>';
+                document.getElementById('productsGrid').innerHTML = '<div class="no-results p-5 text-center rounded-4">❌ Не удалось загрузить товары. Проверьте соединение с сервером.</div>';
             }
         }
         
@@ -301,35 +205,47 @@
             return cat ? cat.name : 'Без категории';
         }
 
-        // Рендер товаров с фильтрацией
-        function renderProducts() {
+        //объединяет поиск, категорию и теги
+        function applyAllFilters() {
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
             const categoryId = document.getElementById('categoryFilter').value;
 
             let filtered = [...allProducts];
 
+            // 1. фильтр по поиску
             if (searchTerm) {
                 filtered = filtered.filter(p => p.name.toLowerCase().includes(searchTerm));
             }
 
+            // 2. фильтр по категории
             if (categoryId !== 'all') {
                 filtered = filtered.filter(p => p.category_id == categoryId);
             }
 
+            // 3. фильтр по тегам (если есть выбранные теги)
+            if (selectedTagIds.length > 0) {
+                filtered = filtered.filter(product => {
+                    // проверяем, есть ли у товара все выбранные теги
+                    if (!product.tags || !Array.isArray(product.tags)) return false;
+                    return selectedTagIds.every(tagId => product.tags.includes(tagId));
+                });
+            }
+
+            // отрисовываем результат
             const grid = document.getElementById('productsGrid');
             
             if (filtered.length === 0) {
-                grid.innerHTML = `<div class="no-results">😕 Товаров не найдено. Попробуйте другие фильтры.</div>`;
+                grid.innerHTML = `<div class="no-results p-5 text-center rounded-4" style="background: #1A2335; grid-column: 1/-1;">😕 Товаров не найдено. Попробуйте другие фильтры.</div>`;
                 return;
             }
 
             grid.innerHTML = filtered.map(product => `
-                <div class="product-card" onclick="openProductCard(${product.id})">
+                <div class="product-card rounded-4 p-3 h-100" onclick="openProductCard(${product.id})">
                     <div class="product-title">${escapeHtml(product.name)}</div>
-                    <div class="product-category">${getCategoryName(product.category_id)}</div>
-                    <div class="product-rating">⭐ ${parseFloat(product.avg_rating).toFixed(1)} / 5</div>
-                    <div class="product-reviews">📝 ${product.review_count || 0} отзывов</div>
-                    ${product.address ? `<div class="product-price">📍 ${escapeHtml(product.address)}</div>` : ''}
+                    <div class="product-category mb-2">${getCategoryName(product.category_id)}</div>
+                    <div class="product-rating mb-1">⭐ ${parseFloat(product.avg_rating).toFixed(1)} / 5</div>
+                    <div class="product-reviews mb-2">📝 ${product.review_count || 0} отзывов</div>
+                    ${product.address ? `<div class="product-address">📍 ${escapeHtml(product.address)}</div>` : ''}
                 </div>
             `).join('');
         }
@@ -348,18 +264,152 @@
             });
         }
 
+        // Сброс ВСЕХ фильтров (поиск, категория, теги)
         function resetFilters() {
             document.getElementById('searchInput').value = '';
             document.getElementById('categoryFilter').value = 'all';
-            renderProducts();
+            // сбрасываем теги
+            selectedTagIds = [];
+            renderFilterTags(allFilterTags);
+            renderSelectedTags();
+            // применяем фильтры
+            applyAllFilters();
         }
 
-        document.getElementById('searchInput').addEventListener('input', renderProducts);
-        document.getElementById('categoryFilter').addEventListener('change', renderProducts);
+        // получаем все теги
+        async function loadFilterTags() {
+            try {
+                const response = await fetch('/api/tags');
+                const data = await response.json();
+                
+                if (data.success) {
+                    allFilterTags = data.tags;
+                    renderFilterTags(allFilterTags);
+                } else {
+                    document.getElementById('filterTagsContainer').innerHTML = 
+                        '<span class="text-danger">Ошибка загрузки тегов</span>';
+                }
+            } 
+            catch (error) {
+                console.error('Ошибка:', error);
+                document.getElementById('filterTagsContainer').innerHTML = 
+                    '<span class="text-danger">Ошибка загрузки</span>';
+            }
+        }
+
+// рисуем кнопки тегов, отслеживаем выбор/отмену + поиск по названию тега
+function renderFilterTags(tags) {
+    const searchTerm = document.getElementById('tagSearchInput')?.value.toLowerCase() || '';
+    const LIMIT = 30; // показывать не больше 30 тегов 
+    
+    // Фильтруем теги по поисковому запросу
+    let filteredTags = tags;
+    if (searchTerm) {
+        filteredTags = tags.filter(tag => tag.name.toLowerCase().includes(searchTerm));
+    }
+    
+    const container = document.getElementById('filterTagsContainer');
+    const totalCount = filteredTags.length;
+    
+    if (filteredTags.length === 0) {
+        container.innerHTML = '<span class="text-secondary">Теги не найдены</span>';
+        return;
+    }
+    
+    // показываем только первые LIMIT тегов
+    let displayTags = filteredTags.slice(0, LIMIT);
+    
+    container.innerHTML = displayTags.map(tag => `
+        <button class="tag-btn btn btn-sm rounded-pill ${selectedTagIds.includes(tag.id) ? 'active' : ''}"
+                onclick="toggleTagFilter(${tag.id})"
+                data-tag-id="${tag.id}">
+            ${escapeHtml(tag.name)}
+        </button>
+    `).join('');
+    
+    // если тегов больше LIMIT - показываем сообщение
+    if (totalCount > LIMIT) {
+        const remainingCount = totalCount - LIMIT;
+        const searchHint = searchTerm ? ` (по запросу найдено еще ${remainingCount})` : ` (еще ${remainingCount})`;
+        container.innerHTML += `<div class="text-secondary small w-100 mt-2"> Показаны первые ${LIMIT} тегов${searchHint}. Уточните поиск, чтобы увидеть больше.</div>`;
+    }
+}
+
+    // Функция для показа всех тегов
+    window.showAllTags = function() {
+        // Убираем лимит и перерисовываем
+        const container = document.getElementById('filterTagsContainer');
+        const allTags = allFilterTags;
+        
+        container.innerHTML = allTags.map(tag => `
+            <button class="tag-btn btn btn-sm rounded-pill ${selectedTagIds.includes(tag.id) ? 'active' : ''}"
+                    onclick="toggleTagFilter(${tag.id})">
+                ${escapeHtml(tag.name)}
+            </button>
+        `).join('');
+    }
+
+        // переключаем фильтр по тегу
+        window.toggleTagFilter = function(tagId) {
+            const index = selectedTagIds.indexOf(tagId);
+            if (index === -1) {
+                selectedTagIds.push(tagId);
+            } else {
+                selectedTagIds.splice(index, 1);
+            }
+            
+            // Обновляем отображение кнопок
+            renderFilterTags(allFilterTags);
+            
+            // Показываем выбранные теги
+            renderSelectedTags();
+            
+            // Применяем все фильтры (поиск + категория + теги)
+            applyAllFilters();
+        };  
+
+        // выбранные теги
+        function renderSelectedTags() {
+            const container = document.getElementById('selectedTagsContainer');
+            
+            if (selectedTagIds.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+            
+            const selectedTags = allFilterTags.filter(tag => selectedTagIds.includes(tag.id));
+            
+            container.innerHTML = selectedTags.map(tag => `
+                <span class="selected-tag-badge badge rounded-pill px-3 py-2">
+                    ${escapeHtml(tag.name)}
+                    <button onclick="toggleTagFilter(${tag.id})" title="Убрать тег">✕</button>
+                </span>
+            `).join('');
+        }
+
+        // сброс фильтра по тегам
+        document.getElementById('clearTagFilter')?.addEventListener('click', () => {
+            selectedTagIds = [];
+            renderFilterTags(allFilterTags);
+            renderSelectedTags();
+            applyAllFilters(); // обновляем список товаров
+        });
+
+        // поиск тега
+        document.getElementById('tagSearchInput')?.addEventListener('input', () => {
+            renderFilterTags(allFilterTags);
+        });
+
+        // обработчики для основного поиска и категории - теперь вызывают applyAllFilters
+        document.getElementById('searchInput').addEventListener('input', applyAllFilters);
+        document.getElementById('categoryFilter').addEventListener('change', applyAllFilters);
         document.getElementById('resetBtn').addEventListener('click', resetFilters);
 
+        // загружаем всё при старте
         loadCategories();
+        loadFilterTags();
         loadProducts();
     </script>
+    <script src="/navbar.js"></script>
 </body>
 </html>

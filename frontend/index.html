@@ -4,64 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Честный Отзыв — платформа отзывов</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
         body {
-            font-family: 'Inter', sans-serif;
             background: #0B1120;
+            font-family: 'Inter', sans-serif;
             color: #E2E8F0;
-        }
-        .navbar {
-            background: #111827;
-            border-bottom: 1px solid #2D3748;
-            padding: 16px 40px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-        .logo {
-            font-size: 24px;
-            font-weight: 700;
-            background: linear-gradient(135deg, #C084FC, #818CF8);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-        }
-        .user-info {
-            display: flex;
-            gap: 20px;
-            align-items: center;
-        }
-        .user-name {
-            background: #1F2A48;
-            padding: 6px 14px;
-            border-radius: 40px;
-            font-size: 14px;
-        }
-        .logout-btn {
-            background: #EF4444;
-            border: none;
-            padding: 6px 16px;
-            border-radius: 30px;
-            color: white;
-            font-weight: 500;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .logout-btn:hover {
-            background: #DC2626;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 60px auto;
-            padding: 0 24px;
-            text-align: center;
         }
         .hero h1 {
             font-size: 48px;
@@ -70,74 +19,16 @@
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
-            margin-bottom: 16px;
         }
-        .hero p {
-            font-size: 18px;
-            color: #94A3B8;
-            max-width: 600px;
-            margin: 0 auto 32px;
-        }
-        .card {
+        .card-custom {
             background: #1A2335;
-            border-radius: 28px;
-            padding: 40px;
             border: 1px solid #2D3748;
-            margin-top: 40px;
+            color: #E2E8F0;
         }
-        .guest-actions {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            margin-top: 32px;
-        }
-        .btn {
-            padding: 12px 28px;
-            border-radius: 40px;
-            text-decoration: none;
-            font-weight: 500;
-            transition: 0.2s;
-        }
-        .btn-primary {
-            background: #6C63FF;
-            color: white;
-        }
-        .btn-outline {
-            border: 1px solid #6C63FF;
-            color: #6C63FF;
-            background: transparent;
-        }
-        .btn-primary:hover {
-            background: #5A52E0;
-            transform: translateY(-2px);
-        }
-        .btn-outline:hover {
-            background: rgba(108, 99, 255, 0.1);
-        }
-        .features {
-            display: flex;
-            gap: 24px;
-            margin-top: 60px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-        .feature {
-            background: #111827;
-            padding: 24px;
-            border-radius: 20px;
-            width: 220px;
-            border: 1px solid #2D3748;
-        }
-        .feature span {
-            font-size: 32px;
-            display: block;
-            margin-bottom: 12px;
+        .feature-text {
+            color: #E2E8F0;
         }
         @media (max-width: 700px) {
-            .navbar {
-                flex-direction: column;
-                gap: 12px;
-            }
             .hero h1 {
                 font-size: 32px;
             }
@@ -145,74 +36,81 @@
     </style>
 </head>
 <body>
-    <div class="navbar">
-        <div class="logo">⭐️ Честный Отзыв</div>
-        <div class="user-info" id="userInfo"></div>
-    </div>
 
-    <div class="container">
-        <div class="hero">
-            <h1>Реальные мнения!!!! Никаких фейков!!!!!</h1>
-            <p>Платформа, где КАЖДЫЙ голос имеет значение. Читайте отзывы, оценивайте товары и услуги, помогайте другим выбирать лучшее.</p>
-            <a href="/ProductPage.html" class="btn btn-outline" style="padding: 6px 18px;">Товары</a>
+    <div id="navbar-container"></div>
+
+    <div class="container py-5">
+        <div class="text-center">
+            <h1 class="mb-3">Реальные мнения! Никаких фейков!</h1>
+            <p class="text-secondary mb-4">Платформа, где КАЖДЫЙ голос имеет значение.</p>
         </div>
 
-        <div id="mainContent">
-        </div>
+        <div id="mainContent" class="mt-5"></div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/navbar.js"></script>
     <script>
-        async function checkAuth() {
+        async function loadContent() {
             try {
                 const res = await fetch('/api/me');
                 const data = await res.json();
-                const userInfoDiv = document.getElementById('userInfo');
                 const mainDiv = document.getElementById('mainContent');
-
+                
                 if (data.isAuthenticated && data.user) {
-                    const user = data.user;
-                    
-                    const isAdmin = user.role === 'admin';
-                    
-                    userInfoDiv.innerHTML = `
-                        <span class="user-name">👋 ${user.name}</span>
-                        ${isAdmin ? '<a href="/admin.html" class="btn" style="background: #6C63FF; color: white; text-decoration: none; padding: 6px 14px; border-radius: 30px;">🛡️ Админ-панель</a>' : ''}
-                        <button class="logout-btn" id="logoutBtn">Выйти</button>
-                    `;
-                    
                     mainDiv.innerHTML = `
-                        <div class="card">
-                            <h2 style="margin-bottom: 16px;">✨ Добро пожаловать, ${user.name}!</h2>
-                            <p style="margin-bottom: 24px;">))</p>
-                            <img src="https://i.ytimg.com/vi/ZT4nfXVMSsQ/maxresdefault.jpg?sqp=-oaymwEmCIAKENAF8quKqQMa8AEB-AH-CYAC0AWKAgwIABABGHIgPChEMA8=&amp;rs=AOn4CLD3qwGOr4ejlwPsuSbo1knXdXARmQ" alt="))" style="max-width: 300px;">
-                            <a href="/ProductPage.html" class="btn btn-outline" style="padding: 6px 18px;">Товары</a>
+                        <div class="card card-custom rounded-4 p-5 text-center">
+                            <h2 class="text-white mb-3">✨ Добро пожаловать, ${escapeHtml(data.user.name)}!</h2>
+                            <p class="text-secondary mb-0">Рады видеть вас снова!</p>
                         </div>
                     `;
-                    
-                    document.getElementById('logoutBtn')?.addEventListener('click', async () => {
-                        await fetch('/api/logout', { method: 'POST' });
-                        window.location.reload();
-                    });
                 } else {
-                    userInfoDiv.innerHTML = `<a href="/login.html" class="btn btn-outline" style="padding: 6px 18px;">Войти</a>`;
                     mainDiv.innerHTML = `
-                        <div class="guest-actions">
-                            <a href="/register.html" class="btn btn-primary">Создать аккаунт</a>
-                            <a href="/login.html" class="btn btn-outline">Уже есть аккаунт</a>
+                        <div class="d-flex gap-3 justify-content-center flex-wrap">
+                            <a href="/register.html" class="btn btn-primary rounded-pill px-4">Создать аккаунт</a>
+                            <a href="/login.html" class="btn btn-outline-secondary rounded-pill px-4">Уже есть аккаунт</a>
                         </div>
-                        <div class="features">
-                            <div class="feature"><span>🔍</span> Честные оценки</div>
-                            <div class="feature"><span>🏷️</span> Теги для товаров</div>
-                            <div class="feature"><span>🛡️</span> Защита от накрутки</div>
-                            <div class="feature"><span>📱</span> Адаптивный дизайн</div>
+                        <div class="row g-4 mt-4">
+                            <div class="col-md-3 col-6">
+                                <div class="card card-custom rounded-4 p-3 text-center">
+                                    <div class="fs-1">🔍</div>
+                                    <div class="mt-2 feature-text">Честные оценки</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-6">
+                                <div class="card card-custom rounded-4 p-3 text-center">
+                                    <div class="fs-1">🏷️</div>
+                                    <div class="mt-2 feature-text">Теги для товаров</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-6">
+                                <div class="card card-custom rounded-4 p-3 text-center">
+                                    <div class="fs-1">🛡️</div>
+                                    <div class="mt-2 feature-text">Защита от накрутки</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-6">
+                                <div class="card card-custom rounded-4 p-3 text-center">
+                                    <div class="fs-1">📱</div>
+                                    <div class="mt-2 feature-text">Адаптивный дизайн</div>
+                                </div>
+                            </div>
                         </div>
                     `;
                 }
             } catch (err) {
-                console.error('Ошибка проверки сессии', err);
+                console.error('Ошибка:', err);
             }
-    }
-        checkAuth();
+        }
+        
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, (m) => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;');
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(loadContent, 100);
+        });
     </script>
 </body>
 </html>

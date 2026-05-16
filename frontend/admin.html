@@ -6,37 +6,160 @@
     <title>Админ-панель — Честный Отзыв</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background: #0B1120;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #E2E8F0;
+        }
+        .card-dark {
+            background: #1A2335;
+            border: 1px solid #2D3748;
+        }
+        .table-dark-custom {
+            background: #1A2335;
+            color: #E2E8F0;
+        }
+        .table-dark-custom td, 
+        .table-dark-custom th {
+            border-color: #2D3748;
+            background: #1A2335;
+            color: #E2E8F0;
+        }
+        .table-dark-custom td a,
+        .table-dark-custom td span,
+        .table-dark-custom td div {
+            color: #E2E8F0;
+        }
+        .badge-new {
+            background: #FBBF24;
+            color: #0B1120;
+        }
+        .badge-accepted {
+            background: #EF4444;
+            color: white;
+        }
+        .badge-rejected {
+            background: #6B7280;
+            color: white;
+        }
+        .btn-search {
+            background: #6C63FF;
+            border-color: #6C63FF;
+        }
+        .btn-search:hover {
+            background: #5A52E0;
+        }
+        .tag-search-input {
+            background: #0B1120;
+            border: 1px solid #2D3748;
+            color: #E2E8F0;
+        }
+        .tag-search-input:focus {
+            background: #0B1120;
+            border-color: #6C63FF;
+            color: #E2E8F0;
+            box-shadow: none;
+        }
+        .tag-badge {
+            background: #2D3748;
+            color: #E2E8F0;
+            transition: all 0.2s;
+        }
+        .tag-badge:hover {
+            background: #6C63FF;
+            transform: translateY(-2px);
+        }
+        .nav-tabs .nav-link {
+            color: #94A3B8;
+            border: none;
+        }
+        .nav-tabs .nav-link:hover {
+            color: #E2E8F0;
+            border-color: transparent;
+        }
+        .nav-tabs .nav-link.active {
+            background: #1A2335;
+            color: #6C63FF;
+            border-bottom: 2px solid #6C63FF;
+        }
+        .modal-content-dark {
+            background: #1A2335;
+            border: 1px solid #2D3748;
+            color: #E2E8F0;
+        }
+        .modal-content-dark .modal-header,
+        .modal-content-dark .modal-body,
+        .modal-content-dark .modal-footer {
+            color: #E2E8F0;
+        }
+        .modal-content-dark .btn-close-white {
+            filter: brightness(0) invert(1);
+        }
+        .form-control-dark {
+            background: #0B1120;
+            border: 1px solid #2D3748;
+            color: #E2E8F0;
+        }
+        .form-control-dark:focus {
+            background: #0B1120;
+            border-color: #6C63FF;
+            color: #E2E8F0;
+            box-shadow: none;
+        }
+        .form-select-dark {
+            background: #0B1120;
+            border: 1px solid #2D3748;
+            color: #E2E8F0;
+        }
+        .form-select-dark:focus {
+            background: #0B1120;
+            border-color: #6C63FF;
+            color: #E2E8F0;
+            box-shadow: none;
+        }
+        .text-secondary-light {
+            color: #94A3B8;
+        }
+        .bg-dark-custom {
+            background: #0B1120;
+        }
+    </style>
 </head>
-<body class="bg-dark">
+<body>
 
-    <nav class="navbar navbar-dark bg-dark border-bottom border-secondary px-4">
-        <div class="container-fluid">
-            <a class="navbar-brand text-white fs-3" href="/">⭐️ Честный Отзыв</a>
-            <div class="d-flex gap-3 align-items-center">
-                <a href="/ProductPage.html" class="btn btn-outline-light btn-sm">📦 Товары</a>
-                <a href="/" class="btn btn-outline-secondary btn-sm">🏠 На главную</a>
-                <div id="userInfo" class="d-flex gap-2 align-items-center"></div>
-            </div>
-        </div>
-    </nav>
+    <div id="navbar-container"></div>
 
     <div class="container mt-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1 class="text-white mb-0">🛡️ Панель администратора</h1>
+            <h1 class="text-white mb-0"><i class="fas fa-shield-alt me-2"></i>Панель администратора</h1>
         </div>
 
         <ul class="nav nav-tabs mb-4" id="adminTabs" role="tablist">
             <li class="nav-item">
-                <button class="nav-link active text-white" data-bs-toggle="tab" data-bs-target="#categories">📂 Категории</button>
+                <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#categories">
+                    <i class="fas fa-folder me-1"></i> Категории
+                </button>
             </li>
             <li class="nav-item">
-                <button class="nav-link text-white" data-bs-toggle="tab" data-bs-target="#products">🛍️ Товары</button>
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#products">
+                    <i class="fas fa-box me-1"></i> Товары
+                </button>
             </li>
             <li class="nav-item">
-                <button class="nav-link text-white" data-bs-toggle="tab" data-bs-target="#reports">⚠️ Жалобы</button>
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tags">
+                    <i class="fas fa-tags me-1"></i> Теги
+                </button>
             </li>
             <li class="nav-item">
-                <button class="nav-link text-white" data-bs-toggle="tab" data-bs-target="#users">👥 Пользователи</button>
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#reports">
+                    <i class="fas fa-flag me-1"></i> Жалобы
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#users">
+                    <i class="fas fa-users me-1"></i> Пользователи
+                </button>
             </li>
         </ul>
 
@@ -44,128 +167,155 @@
             
             <!-- ==================== КАТЕГОРИИ ==================== -->
             <div class="tab-pane fade show active" id="categories">
-                <div class="card bg-dark border-secondary">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h5 class="card-title text-white mb-0">Управление категориями</h5>
-                            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
-                                <i class="fas fa-plus me-1"></i>Добавить
-                            </button>
-                        </div>
-                        <div class="table-responsive">
-                            <table class="table table-dark text-white">
-                                <thead><tr><th>ID</th><th>Название</th><th>Действия</th></tr></thead>
-                                <tbody id="categoriesTable"><tr><td colspan="3" class="text-center text-secondary">Загрузка...</td></tr></tbody>
-                            </table>
-                        </div>
+                <div class="card-dark rounded-4 p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="text-white mb-0"><i class="fas fa-plus-circle me-2"></i>Управление категориями</h5>
+                        <button class="btn btn-primary btn-sm rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
+                            <i class="fas fa-plus me-1"></i>Добавить
+                        </button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-dark-custom">
+                            <thead>
+                                <tr class="border-secondary">
+                                    <th class="text-white">ID</th>
+                                    <th class="text-white">Название</th>
+                                    <th class="text-white">Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody id="categoriesTable">
+                                <tr><td colspan="3" class="text-center text-secondary">Загрузка...</td></tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
 
             <!-- ==================== ТОВАРЫ ==================== -->
             <div class="tab-pane fade" id="products">
-                <div class="card bg-dark border-secondary">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h5 class="card-title text-white mb-0">Управление товарами</h5>
-                            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addProductModal">
-                                <i class="fas fa-plus me-1"></i>Добавить
-                            </button>
-                        </div>
-                        <div class="table-responsive">
-                            <table class="table table-dark text-white">
-                                <thead><tr><th>ID</th><th>Название</th><th>Категория</th><th>Адрес</th><th>Рейтинг</th><th>Отзывы</th><th>Действия</th></tr></thead>
-                                <tbody id="productsTable"><tr><td colspan="7" class="text-center text-secondary">Загрузка......</td></tr></tbody>
-                            </table>
-                        </div>
+                <div class="card-dark rounded-4 p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="text-white mb-0"><i class="fas fa-plus-circle me-2"></i>Управление товарами</h5>
+                        <button class="btn btn-primary btn-sm rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#addProductModal">
+                            <i class="fas fa-plus me-1"></i>Добавить
+                        </button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-dark-custom">
+                            <thead>
+                                <tr class="border-secondary">
+                                    <th class="text-white">ID</th>
+                                    <th class="text-white">Название</th>
+                                    <th class="text-white">Категория</th>
+                                    <th class="text-white">Адрес</th>
+                                    <th class="text-white">Рейтинг</th>
+                                    <th class="text-white">Отзывы</th>
+                                    <th class="text-white">Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody id="productsTable">
+                                <tr><td colspan="7" class="text-center text-secondary">Загрузка...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==================== ТЕГИ ==================== -->
+            <div class="tab-pane fade" id="tags">
+                <div class="card-dark rounded-4 p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="text-white mb-0"><i class="fas fa-tags me-2"></i>Управление тегами</h5>
+                        <button class="btn btn-primary btn-sm rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#addTagModal">
+                            <i class="fas fa-plus me-1"></i>Добавить тег
+                        </button>
+                    </div>
+                    <div class="mb-3">
+                        <input type="text" id="tagSearch" class="form-control form-control-sm form-control-dark rounded-pill" 
+                               style="max-width: 300px;" placeholder="🔍 Поиск тега...">
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-dark-custom">
+                            <thead>
+                                <tr class="border-secondary">
+                                    <th class="text-white">ID</th>
+                                    <th class="text-white">Название тега</th>
+                                    <th class="text-white">Кол-во голосов</th>
+                                    <th class="text-white">Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tagsTable">
+                                <tr><td colspan="4" class="text-center text-secondary">Загрузка...</td></tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
 
             <!-- ==================== ЖАЛОБЫ ==================== -->
             <div class="tab-pane fade" id="reports">
-                <div class="card bg-dark border-secondary">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h5 class="card-title text-white mb-0">Модерация жалоб</h5>
-                            <div class="d-flex gap-2">
-                                <select id="reportFilter" class="form-select form-select-sm bg-dark text-white border-secondary" style="width: auto;">
-                                    <option value="all">Все жалобы</option>
-                                    <option value="new">Новые</option>
-                                    <option value="processed">Обработанные</option>
-                                    <option value="mine">Мои обработки</option>
-                                </select>
-                                <button class="btn btn-sm btn-outline-primary" onclick="loadReports()"><i class="fas fa-sync-alt"></i></button>
-                            </div>
+                <div class="card-dark rounded-4 p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="text-white mb-0"><i class="fas fa-flag me-2"></i>Модерация жалоб</h5>
+                        <div class="d-flex gap-2">
+                            <select id="reportFilter" class="form-select form-select-sm form-select-dark rounded-pill" style="width: auto;">
+                                <option value="all">📋 Все жалобы</option>
+                                <option value="new">🆕 Новые</option>
+                                <option value="processed">✅ Обработанные</option>
+                                <option value="mine">👤 Мои обработки</option>
+                            </select>
+                            <button class="btn btn-sm btn-outline-primary rounded-pill px-3" onclick="loadReports()">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
                         </div>
-                        <div class="table-responsive">
-                            <table class="table table-dark text-white table-sm">
-                                <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Товар</th>
-                                        <th>Отзыв</th>
-                                        <th>Автор отзыва</th>
-                                        <th>Рейтинг</th>
-                                        <th>Жалоба от</th>
-                                        <th>Причина</th>
-                                        <th>Статус</th>
-                                        <th>Обработал</th>
-                                        <th>Дата жалобы</th>
-                                        <th>Действия</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="reportsTable">
-                                    <tr><td colspan="11" class="text-center text-secondary">Загрузка...</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-dark-custom table-sm">
+                            <thead>
+                                <tr class="border-secondary">
+                                    <th class="text-white">ID</th>
+                                    <th class="text-white">Товар</th>
+                                    <th class="text-white">Отзыв</th>
+                                    <th class="text-white">Автор</th>
+                                    <th class="text-white">Рейтинг</th>
+                                    <th class="text-white">Жалоба от</th>
+                                    <th class="text-white">Причина</th>
+                                    <th class="text-white">Статус</th>
+                                    <th class="text-white">Обработал</th>
+                                    <th class="text-white">Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reportsTable">
+                                <tr><td colspan="10" class="text-center text-secondary">Загрузка...</td></tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
 
             <!-- ==================== ПОЛЬЗОВАТЕЛИ ==================== -->
             <div class="tab-pane fade" id="users">
-                <div class="card bg-dark border-secondary">
-                    <div class="card-body">
-                        <h5 class="card-title text-white mb-3">Управление пользователями</h5>
-                        <div class="table-responsive">
-                            <table class="table table-dark text-white">
-                                <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Имя</th>
-                                        <th>Email</th>
-                                        <th>Телефон</th>
-                                        <th>Город</th>
-                                        <th>Роль</th>
-                                        <th>Статус</th>
-                                        <th>Действия</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="usersTable">
-                                    <tr><td colspan="8" class="text-center text-secondary">Загрузка...</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
+                <div class="card-dark rounded-4 p-4">
+                    <h5 class="text-white mb-3"><i class="fas fa-users me-2"></i>Управление пользователями</h5>
+                    <div class="table-responsive">
+                        <table class="table table-dark-custom">
+                            <thead>
+                                <tr class="border-secondary">
+                                    <th class="text-white">ID</th>
+                                    <th class="text-white">Имя</th>
+                                    <th class="text-white">Email</th>
+                                    <th class="text-white">Телефон</th>
+                                    <th class="text-white">Город</th>
+                                    <th class="text-white">Роль</th>
+                                    <th class="text-white">Статус</th>
+                                    <th class="text-white">Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersTable">
+                                <tr><td colspan="8" class="text-center text-secondary">Загрузка...</td></tr>
+                            </tbody>
+                        </table>
                     </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal подтверждения удаления -->
-    <div class="modal fade" id="confirmModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content bg-dark text-white border-secondary">
-                <div class="modal-header border-secondary">
-                    <h5 class="modal-title">Подтверждение</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body" id="confirmMessage">Вы уверены?</div>
-                <div class="modal-footer border-secondary">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-                    <button type="button" class="btn btn-danger" id="confirmBtn">Подтвердить</button>
                 </div>
             </div>
         </div>
@@ -174,18 +324,18 @@
     <!-- Modal: Добавить категорию -->
     <div class="modal fade" id="addCategoryModal" tabindex="-1">
         <div class="modal-dialog">
-            <div class="modal-content bg-dark text-white border-secondary">
+            <div class="modal-content modal-content-dark">
                 <div class="modal-header border-secondary">
-                    <h5 class="modal-title">Добавить категорию</h5>
+                    <h5 class="text-white"><i class="fas fa-folder-plus me-2"></i>Добавить категорию</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <input type="text" id="newCategoryName" class="form-control bg-secondary text-white border-0" placeholder="Название категории">
+                    <input type="text" id="newCategoryName" class="form-control form-control-dark rounded-pill" placeholder="Название категории">
                     <div id="categoryError" class="text-danger small mt-2"></div>
                 </div>
                 <div class="modal-footer border-secondary">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-                    <button type="button" class="btn btn-primary" id="saveCategoryBtn">Сохранить</button>
+                    <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-primary rounded-pill" id="saveCategoryBtn">Сохранить</button>
                 </div>
             </div>
         </div>
@@ -194,55 +344,92 @@
     <!-- Modal: Добавить товар -->
     <div class="modal fade" id="addProductModal" tabindex="-1">
         <div class="modal-dialog">
-            <div class="modal-content bg-dark text-white border-secondary">
+            <div class="modal-content modal-content-dark">
                 <div class="modal-header border-secondary">
-                    <h5 class="modal-title">Добавить товар</h5>
+                    <h5 class="text-white"><i class="fas fa-box-plus me-2"></i>Добавить товар</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="mb-2"><label class="form-label small">Название</label><input type="text" id="productName" class="form-control bg-secondary text-white border-0"></div>
-                    <div class="mb-2"><label class="form-label small">Категория</label><select id="productCategory" class="form-select bg-secondary text-white border-0"><option value="">Выберите</option></select></div>
-                    <div class="mb-2"><label class="form-label small">Адрес</label><input type="text" id="productAddress" class="form-control bg-secondary text-white border-0"></div>
-                    <div class="mb-2"><label class="form-label small">Описание</label><textarea id="productDesc" class="form-control bg-secondary text-white border-0" rows="2"></textarea></div>
+                    <div class="mb-2"><label class="form-label text-secondary-light">Название</label><input type="text" id="productName" class="form-control form-control-dark rounded-pill"></div>
+                    <div class="mb-2"><label class="form-label text-secondary-light">Категория</label><select id="productCategory" class="form-select form-select-dark rounded-pill"><option value="">Выберите</option></select></div>
+                    <div class="mb-2"><label class="form-label text-secondary-light">Адрес</label><input type="text" id="productAddress" class="form-control form-control-dark rounded-pill"></div>
+                    <div class="mb-2"><label class="form-label text-secondary-light">Описание</label><textarea id="productDesc" class="form-control form-control-dark" rows="2"></textarea></div>
                     <div id="productError" class="text-danger small"></div>
                 </div>
                 <div class="modal-footer border-secondary">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-                    <button type="button" class="btn btn-primary" id="saveProductBtn">Сохранить</button>
+                    <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-primary rounded-pill" id="saveProductBtn">Сохранить</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Modal: Просмотр полного отзыва -->
+    <!-- Modal: Добавить тег -->
+    <div class="modal fade" id="addTagModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content modal-content-dark">
+                <div class="modal-header border-secondary">
+                    <h5 class="text-white"><i class="fas fa-tag-plus me-2"></i>Добавить тег</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="text" id="newTagName" class="form-control form-control-dark rounded-pill" placeholder="Название тега (например: Wi-Fi)">
+                    <div id="tagError" class="text-danger small mt-2"></div>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-primary rounded-pill" id="saveTagBtn">Сохранить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Подтверждение -->
+    <div class="modal fade" id="confirmModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content modal-content-dark">
+                <div class="modal-header border-secondary">
+                    <h5 class="text-white"><i class="fas fa-question-circle me-2"></i>Подтверждение</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-white" id="confirmMessage">Вы уверены?</div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-danger rounded-pill" id="confirmBtn">Подтвердить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Просмотр отзыва -->
     <div class="modal fade" id="viewReviewModal" tabindex="-1">
         <div class="modal-dialog modal-lg">
-            <div class="modal-content bg-dark text-white border-secondary">
+            <div class="modal-content modal-content-dark">
                 <div class="modal-header border-secondary">
-                    <h5 class="modal-title">📝 Полный текст отзыва</h5>
+                    <h5 class="text-white"><i class="fas fa-file-alt me-2"></i>Полный текст отзыва</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <div class="row">
-                        <div class="col-md-6 mb-2"><strong>Товар:</strong> <span id="viewProductName" class="text-secondary"></span></div>
-                        <div class="col-md-6 mb-2"><strong>Автор:</strong> <span id="viewAuthorName" class="text-secondary"></span></div>
+                        <div class="col-md-6 mb-2"><strong class="text-secondary-light">Товар:</strong> <span class="text-white" id="viewProductName"></span></div>
+                        <div class="col-md-6 mb-2"><strong class="text-secondary-light">Автор:</strong> <span class="text-white" id="viewAuthorName"></span></div>
                     </div>
                     <div class="row">
-                        <div class="col-md-6 mb-2"><strong>Оценка:</strong> <span id="viewRating" class="text-warning"></span></div>
-                        <div class="col-md-6 mb-2"><strong>Дата:</strong> <span id="viewDate" class="text-secondary"></span></div>
+                        <div class="col-md-6 mb-2"><strong class="text-secondary-light">Оценка:</strong> <span class="text-warning" id="viewRating"></span></div>
+                        <div class="col-md-6 mb-2"><strong class="text-secondary-light">Дата:</strong> <span class="text-white" id="viewDate"></span></div>
                     </div>
-                    <div class="mb-2"><strong>Текст отзыва:</strong></div>
-                    <div id="viewComment" class="text-secondary mt-1 p-2 bg-dark rounded" style="white-space: pre-wrap;"></div>
-                    <div class="row mt-2">
-                        <div class="col-md-6"><strong class="text-success">Плюсы:</strong><div id="viewPros" class="text-secondary mt-1 p-2 bg-dark rounded"></div></div>
-                        <div class="col-md-6"><strong class="text-danger">Минусы:</strong><div id="viewCons" class="text-secondary mt-1 p-2 bg-dark rounded"></div></div>
+                    <div class="mb-2"><strong class="text-secondary-light">Текст отзыва:</strong></div>
+                    <div id="viewComment" class="text-white mt-1 p-3 bg-dark-custom rounded-3" style="white-space: pre-wrap;"></div>
+                    <div class="row mt-3">
+                        <div class="col-md-6"><strong class="text-success">👍 Плюсы:</strong><div id="viewPros" class="text-white mt-1 p-2 bg-dark-custom rounded-3"></div></div>
+                        <div class="col-md-6"><strong class="text-danger">👎 Минусы:</strong><div id="viewCons" class="text-white mt-1 p-2 bg-dark-custom rounded-3"></div></div>
                     </div>
-                    <div class="mt-2"><strong>Жалобы на этот отзыв:</strong></div>
-                    <div id="viewReportsList" class="mt-2 p-2 bg-secondary bg-opacity-25 rounded" style="max-height: 150px; overflow-y: auto;"></div>
+                    <div class="mt-3"><strong class="text-secondary-light">📋 Жалобы на этот отзыв:</strong></div>
+                    <div id="viewReportsList" class="mt-2 p-2 bg-dark-custom rounded-3" style="max-height: 150px; overflow-y: auto;"></div>
                 </div>
                 <div class="modal-footer border-secondary">
-                    <button type="button" class="btn btn-danger" id="banAuthorBtn">🚫 Забанить автора</button>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                    <button type="button" class="btn btn-danger rounded-pill" id="banAuthorBtn"><i class="fas fa-ban me-1"></i>Забанить автора</button>
+                    <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Закрыть</button>
                 </div>
             </div>
         </div>
@@ -251,21 +438,21 @@
     <!-- Modal: Блокировка пользователя -->
     <div class="modal fade" id="banUserModal" tabindex="-1">
         <div class="modal-dialog">
-            <div class="modal-content bg-dark text-white border-secondary">
+            <div class="modal-content modal-content-dark">
                 <div class="modal-header border-secondary">
-                    <h5 class="modal-title">🚫 Блокировка пользователя</h5>
+                    <h5 class="text-white"><i class="fas fa-ban me-2"></i>Блокировка пользователя</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <p>Пользователь: <strong id="banUserName"></strong></p>
-                    <label class="form-label">Причина блокировки</label>
-                    <input type="text" id="banReason" class="form-control bg-secondary text-white border-0" placeholder="Нарушение правил...">
+                    <p class="text-white">Пользователь: <strong id="banUserName" class="text-primary"></strong></p>
+                    <label class="form-label text-secondary-light">Причина блокировки</label>
+                    <input type="text" id="banReason" class="form-control form-control-dark rounded-pill" placeholder="Нарушение правил...">
                     <input type="hidden" id="banUserId">
                     <div id="banError" class="text-danger small mt-2"></div>
                 </div>
                 <div class="modal-footer border-secondary">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-                    <button type="button" class="btn btn-danger" id="confirmBanBtn">Заблокировать</button>
+                    <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-danger rounded-pill" id="confirmBanBtn">Заблокировать</button>
                 </div>
             </div>
         </div>
@@ -274,20 +461,21 @@
     <!-- Modal: Сообщение -->
     <div class="modal fade" id="messageModal" tabindex="-1">
         <div class="modal-dialog">
-            <div class="modal-content bg-dark text-white border-secondary">
+            <div class="modal-content modal-content-dark">
                 <div class="modal-header border-secondary">
-                    <h5 class="modal-title" id="messageTitle">Уведомление</h5>
+                    <h5 class="text-white" id="messageTitle">Уведомление</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body" id="messageText"></div>
+                <div class="modal-body text-white" id="messageText"></div>
                 <div class="modal-footer border-secondary">
-                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+                    <button type="button" class="btn btn-primary rounded-pill" data-bs-dismiss="modal">OK</button>
                 </div>
             </div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/navbar.js"></script>
     
     <script>
         let currentAdminId = null;
@@ -295,6 +483,7 @@
         let pendingDeleteAction = null;
         let allCategories = [];
         let allReports = [];
+        let allTags = [];
 
         function showMessage(text, isError = false) {
             document.getElementById('messageTitle').textContent = isError ? '❌ Ошибка' : '✅ Успех';
@@ -323,72 +512,13 @@
                 currentAdminId = data.user.id;
                 currentAdminName = data.user.name;
                 
-                document.getElementById('userInfo').innerHTML = `<span class="badge bg-primary">👑 ${data.user.name}</span><button class="btn btn-danger btn-sm" id="logoutBtn">Выйти</button>`;
-                document.getElementById('logoutBtn')?.addEventListener('click', async () => {
-                    await fetch('/api/logout', { method: 'POST' });
-                    window.location.href = '/';
-                });
-                
                 await loadCategories();
                 await loadProducts();
+                await loadTags();
                 await loadReports();
                 await loadUsers();
             } catch (error) { window.location.href = '/'; }
         }
-
-        // ========== ПОЛЬЗОВАТЕЛИ ==========
-        async function loadUsers() {
-            try {
-                const res = await fetch('/api/admin/users');
-                const data = await res.json();
-                if (data.success) {
-                    const tbody = document.getElementById('usersTable');
-                    tbody.innerHTML = data.users.map(user => `
-                        <tr>
-                            <td>${user.id}</td>
-                            <td>${escapeHtml(user.name)}</td>
-                            <td>${escapeHtml(user.email)}</td>
-                            <td>${escapeHtml(user.phone) || '-'}</td>
-                            <td>${escapeHtml(user.city) || '-'}</td>
-                            <td><span class="badge bg-${user.role === 'admin' ? 'danger' : user.role === 'business' ? 'info' : 'secondary'}">${user.role}</span></td>
-                            <td>${user.is_banned ? '<span class="badge bg-danger">Забанен</span>' : '<span class="badge bg-success">Активен</span>'}</td>
-                            <td>${!user.is_banned && user.role !== 'admin' ? `<button class="btn btn-warning btn-sm" onclick='openBanUser(${user.id}, "${escapeHtml(user.name)}")'><i class="fas fa-ban"></i> Забанить</button>` : user.is_banned ? '<span class="text-secondary">—</span>' : '-'}</td>
-                        </tr>
-                    `).join('');
-                }
-            } catch (error) { console.error(error); }
-        }
-
-        window.openBanUser = (userId, userName) => {
-            document.getElementById('banUserId').value = userId;
-            document.getElementById('banUserName').innerHTML = escapeHtml(userName);
-            document.getElementById('banReason').value = '';
-            document.getElementById('banError').textContent = '';
-            new bootstrap.Modal(document.getElementById('banUserModal')).show();
-        };
-
-        document.getElementById('confirmBanBtn')?.addEventListener('click', async () => {
-            const userId = document.getElementById('banUserId').value;
-            const reason = document.getElementById('banReason').value.trim();
-            if (!reason) {
-                document.getElementById('banError').textContent = 'Укажите причину блокировки';
-                return;
-            }
-            try {
-                const res = await fetch(`/api/admin/users/${userId}/ban`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ reason })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    bootstrap.Modal.getInstance(document.getElementById('banUserModal')).hide();
-                    showMessage('Пользователь заблокирован');
-                    await loadUsers();
-                    await loadReports();
-                } else { showMessage(data.error, true); }
-            } catch (error) { showMessage('Ошибка', true); }
-        });
 
         // ========== КАТЕГОРИИ ==========
         async function loadCategories() {
@@ -398,7 +528,13 @@
                 if (data.success) {
                     allCategories = data.categories;
                     const tbody = document.getElementById('categoriesTable');
-                    tbody.innerHTML = allCategories.map(cat => `<tr><td>${cat.id}</td><td class="text-white">${escapeHtml(cat.name)}</td><td><button class="btn btn-danger btn-sm" onclick='deleteCategory(${cat.id}, "${escapeHtml(cat.name)}")'><i class="fas fa-trash"></i></button></td></tr>`).join('');
+                    tbody.innerHTML = allCategories.map(cat => `
+                        <tr class="border-secondary">
+                            <td class="text-white">${cat.id}</td>
+                            <td class="text-white">${escapeHtml(cat.name)}</td>
+                            <td><button class="btn btn-danger btn-sm rounded-pill px-3" onclick='deleteCategory(${cat.id}, "${escapeHtml(cat.name)}")'><i class="fas fa-trash me-1"></i>Удалить</button></td>
+                        </tr>
+                    `).join('');
                     const catSelect = document.getElementById('productCategory');
                     if (catSelect) catSelect.innerHTML = '<option value="">Выберите категорию</option>' + allCategories.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
                 }
@@ -437,7 +573,17 @@
                 const data = await res.json();
                 if (data.success) {
                     const tbody = document.getElementById('productsTable');
-                    tbody.innerHTML = data.products.map(prod => `<tr><td>${prod.id}</td><td class="text-white">${escapeHtml(prod.name)}</td><td>${escapeHtml(prod.category_name || '-')}</td><td>${escapeHtml(prod.address) || '-'}</td><td>⭐ ${parseFloat(prod.avg_rating).toFixed(1)}</td><td>${prod.review_count || 0}</td><td><button class="btn btn-danger btn-sm" onclick='deleteProduct(${prod.id}, "${escapeHtml(prod.name)}")'><i class="fas fa-trash"></i></button></td></tr>`).join('');
+                    tbody.innerHTML = data.products.map(prod => `
+                        <tr class="border-secondary">
+                            <td class="text-white">${prod.id}</td>
+                            <td class="text-white">${escapeHtml(prod.name)}</td>
+                            <td class="text-white">${escapeHtml(prod.category_name || '-')}</td>
+                            <td class="text-white">${escapeHtml(prod.address) || '-'}</td>
+                            <td class="text-warning">⭐ ${parseFloat(prod.avg_rating).toFixed(1)}</td>
+                            <td class="text-white">${prod.review_count || 0}</td>
+                            <td><button class="btn btn-danger btn-sm rounded-pill px-3" onclick='deleteProduct(${prod.id}, "${escapeHtml(prod.name)}")'><i class="fas fa-trash me-1"></i>Удалить</button></td>
+                        </tr>
+                    `).join('');
                 }
             } catch (error) { showMessage('Ошибка загрузки товаров', true); }
         }
@@ -473,6 +619,67 @@
             } catch (error) { showMessage('Ошибка сервера', true); }
         });
 
+        // ========== ТЕГИ ==========
+        async function loadTags() {
+            try {
+                const res = await fetch('/api/tags');
+                const data = await res.json();
+                if (data.success) {
+                    allTags = data.tags;
+                    applyTagFilter();
+                }
+            } catch (error) { console.error('Ошибка загрузки тегов:', error); }
+        }
+
+        function applyTagFilter() {
+            const searchTerm = document.getElementById('tagSearch')?.value.toLowerCase() || '';
+            let filtered = allTags;
+            if (searchTerm) {
+                filtered = allTags.filter(tag => tag.name.toLowerCase().includes(searchTerm));
+            }
+            const tbody = document.getElementById('tagsTable');
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center text-secondary">Теги не найдены</td></tr>';
+                return;
+            }
+            tbody.innerHTML = filtered.map(tag => `
+                <tr class="border-secondary">
+                    <td class="text-white">${tag.id}</td>
+                    <td class="text-white"><span class="badge tag-badge rounded-pill px-3 py-2">${escapeHtml(tag.name)}</span></td>
+                    <td class="text-white">-</td>
+                    <td><button class="btn btn-danger btn-sm rounded-pill px-3" onclick='deleteTag(${tag.id}, "${escapeHtml(tag.name)}")'><i class="fas fa-trash me-1"></i>Удалить</button></td>
+                </tr>
+            `).join('');
+        }
+
+        document.getElementById('tagSearch')?.addEventListener('input', () => applyTagFilter());
+
+        document.getElementById('saveTagBtn')?.addEventListener('click', async () => {
+            const name = document.getElementById('newTagName').value.trim();
+            if (!name || name.length < 2) { document.getElementById('tagError').textContent = 'Введите название (мин. 2 символа)'; return; }
+            if (name.length > 50) { document.getElementById('tagError').textContent = 'Название не более 50 символов'; return; }
+            document.getElementById('tagError').textContent = '';
+            try {
+                const res = await fetch('/api/admin/tags', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name }) });
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById('newTagName').value = '';
+                    bootstrap.Modal.getInstance(document.getElementById('addTagModal')).hide();
+                    await loadTags();
+                    showMessage('Тег добавлен');
+                } else { showMessage(data.error, true); }
+            } catch (error) { showMessage('Ошибка сервера', true); }
+        });
+
+        window.deleteTag = (id, name) => {
+            confirmAction(`Удалить тег "${name}"?`, async () => {
+                const res = await fetch(`/api/admin/tags/${id}`, { method: 'DELETE' });
+                const data = await res.json();
+                if (data.success) { await loadTags(); showMessage('Тег удалён'); } 
+                else { showMessage(data.error, true); }
+            });
+        };
+
         // ========== ЖАЛОБЫ ==========
         async function loadReports() {
             try {
@@ -493,30 +700,37 @@
             else if (filter === 'mine') filtered = filtered.filter(r => r.checked_by === currentAdminId);
             
             const statusColors = { 'новая': 'warning', 'принята': 'danger', 'отклонена': 'secondary' };
+            const statusIcons = { 'новая': '🆕', 'принята': '✅', 'отклонена': '❌' };
             const tbody = document.getElementById('reportsTable');
-            if (filtered.length === 0) { tbody.innerHTML = '<tr><td colspan="11" class="text-center text-secondary">Нет жалоб</td></tr>'; return; }
+            if (filtered.length === 0) { tbody.innerHTML = '<tr><td colspan="10" class="text-center text-secondary">Нет жалоб</td></tr>'; return; }
             
             tbody.innerHTML = filtered.map(report => {
                 const reviewText = report.review_text || '';
                 const shortText = reviewText.length > 50 ? reviewText.substring(0, 50) + '...' : reviewText;
-                return `<tr>
-                    <td class="align-middle">${report.id}</td>
-                    <td class="align-middle">${escapeHtml(report.product_name)}</td>
-                    <td class="align-middle">
-                        <div class="d-flex gap-1 align-items-center">
-                            <small class="text-secondary">${escapeHtml(shortText)}</small>
-                            <button class="btn btn-info btn-sm" onclick='viewFullReview(${report.id})'><i class="fas fa-eye"></i></button>
-                        </div>
-                    </td>
-                    <td class="align-middle">${escapeHtml(report.review_author_name)} ${report.review_author_banned ? '<span class="badge bg-danger">Забанен</span>' : ''}</td>
-                    <td class="align-middle">⭐ ${report.review_rating}/5</td>
-                    <td class="align-middle">${escapeHtml(report.user_name)}</td>
-                    <td class="align-middle">${escapeHtml(report.reason)}</td>
-                    <td class="align-middle"><span class="badge bg-${statusColors[report.status_name]}">${report.status_name}</span></td>
-                    <td class="align-middle">${report.status_name !== 'новая' ? (report.checked_by_name ? `<span class="text-info"><i class="fas fa-user-shield"></i> ${escapeHtml(report.checked_by_name)}</span>` : '—') : '—'}</td>
-                    <td class="align-middle"><small>${new Date(report.created_at).toLocaleDateString()}</small></td>
-                    <td class="align-middle">${report.status_name === 'новая' ? `<button class="btn btn-success btn-sm me-1" onclick='handleReport(${report.id}, "принята")' title="Принять"><i class="fas fa-check"></i></button><button class="btn btn-secondary btn-sm" onclick='handleReport(${report.id}, "отклонена")' title="Отклонить"><i class="fas fa-times"></i></button>` : '-'}</td>
-                </tr>`;
+                return `
+                    <tr class="border-secondary">
+                        <td class="text-white">${report.id}</td>
+                        <td class="text-white">${escapeHtml(report.product_name)}</td>
+                        <td class="text-white">
+                            <div class="d-flex gap-1 align-items-center">
+                                <small class="text-secondary">${escapeHtml(shortText)}</small>
+                                <button class="btn btn-info btn-sm rounded-pill px-2" onclick='viewFullReview(${report.id})'><i class="fas fa-eye"></i></button>
+                            </div>
+                        </td>
+                        <td class="text-white">${escapeHtml(report.review_author_name)} ${report.review_author_banned ? '<span class="badge bg-danger ms-1">Забанен</span>' : ''}</td>
+                        <td class="text-warning">⭐ ${report.review_rating}/5</td>
+                        <td class="text-white">${escapeHtml(report.user_name)}</td>
+                        <td class="text-white">${escapeHtml(report.reason)}</td>
+                        <td><span class="badge bg-${statusColors[report.status_name]} rounded-pill">${statusIcons[report.status_name]} ${report.status_name}</span></td>
+                        <td class="text-white">${report.status_name !== 'новая' ? (report.checked_by_name ? `<span class="text-info">${escapeHtml(report.checked_by_name)}</span>` : '—') : '—'}</td>
+                        <td>${report.status_name === 'новая' ? `
+                            <div class="d-flex gap-1">
+                                <button class="btn btn-success btn-sm rounded-pill px-2" onclick='handleReport(${report.id}, "принята")' title="Принять"><i class="fas fa-check"></i></button>
+                                <button class="btn btn-secondary btn-sm rounded-pill px-2" onclick='handleReport(${report.id}, "отклонена")' title="Отклонить"><i class="fas fa-times"></i></button>
+                            </div>
+                        ` : '-'}</td>
+                    </tr>
+                `;
             }).join('');
         }
 
@@ -558,6 +772,60 @@
         };
 
         document.getElementById('reportFilter')?.addEventListener('change', () => applyReportFilter());
+
+        // ========== ПОЛЬЗОВАТЕЛИ ==========
+        async function loadUsers() {
+            try {
+                const res = await fetch('/api/admin/users');
+                const data = await res.json();
+                if (data.success) {
+                    const tbody = document.getElementById('usersTable');
+                    tbody.innerHTML = data.users.map(user => `
+                        <tr class="border-secondary">
+                            <td class="text-white">${user.id}</td>
+                            <td class="text-white">${escapeHtml(user.name)}</td>
+                            <td class="text-white">${escapeHtml(user.email)}</td>
+                            <td class="text-white">${escapeHtml(user.phone) || '-'}</td>
+                            <td class="text-white">${escapeHtml(user.city) || '-'}</td>
+                            <td><span class="badge bg-${user.role === 'admin' ? 'danger' : user.role === 'business' ? 'info' : 'secondary'} rounded-pill">${user.role}</span></td>
+                            <td>${user.is_banned ? '<span class="badge bg-danger rounded-pill">Забанен</span>' : '<span class="badge bg-success rounded-pill">Активен</span>'}</td>
+                            <td>${!user.is_banned && user.role !== 'admin' ? `<button class="btn btn-warning btn-sm rounded-pill px-3" onclick='openBanUser(${user.id}, "${escapeHtml(user.name)}")'><i class="fas fa-ban me-1"></i>Забанить</button>` : user.is_banned ? '<span class="text-secondary">—</span>' : '-'}</td>
+                        </table>
+                    `).join('');
+                }
+            } catch (error) { console.error(error); }
+        }
+
+        window.openBanUser = (userId, userName) => {
+            document.getElementById('banUserId').value = userId;
+            document.getElementById('banUserName').innerHTML = escapeHtml(userName);
+            document.getElementById('banReason').value = '';
+            document.getElementById('banError').textContent = '';
+            new bootstrap.Modal(document.getElementById('banUserModal')).show();
+        };
+
+        document.getElementById('confirmBanBtn')?.addEventListener('click', async () => {
+            const userId = document.getElementById('banUserId').value;
+            const reason = document.getElementById('banReason').value.trim();
+            if (!reason) {
+                document.getElementById('banError').textContent = 'Укажите причину блокировки';
+                return;
+            }
+            try {
+                const res = await fetch(`/api/admin/users/${userId}/ban`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ reason })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    bootstrap.Modal.getInstance(document.getElementById('banUserModal')).hide();
+                    showMessage('Пользователь заблокирован');
+                    await loadUsers();
+                    await loadReports();
+                } else { showMessage(data.error, true); }
+            } catch (error) { showMessage('Ошибка', true); }
+        });
 
         function escapeHtml(str) {
             if (!str) return '';

@@ -60,19 +60,89 @@
             background-color: #dc3545;
             border-color: #dc3545;
         }
+        /* Стили для тегов */
+        .tag-item {
+            transition: all 0.2s ease;
+        }
+        .tag-item:hover {
+            transform: translateY(-2px);
+        }
+        .vote-tag-btn {
+            transition: all 0.2s ease;
+        }
+        .vote-tag-btn:hover {
+            transform: scale(1.05);
+        }
+        .tag-voted {
+            background: #6C63FF !important;
+            border-color: #6C63FF !important;
+            color: white !important;
+        }
+        .tag-search-input {
+            background: #0B1120;
+            border: 1px solid #2D3748;
+            color: #E2E8F0;
+        }
+        .tag-search-input:focus {
+            background: #0B1120;
+            border-color: #6C63FF;
+            color: #E2E8F0;
+            box-shadow: none;
+        }
+        .tags-container {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .tags-container::-webkit-scrollbar {
+            width: 6px;
+        }
+        .tags-container::-webkit-scrollbar-track {
+            background: #2D3748;
+            border-radius: 10px;
+        }
+        .tags-container::-webkit-scrollbar-thumb {
+            background: #6C63FF;
+            border-radius: 10px;
+        }
+        
+        .review-text {
+            word-wrap: break-word;
+            word-break: break-word;
+            white-space: normal;
+            overflow-wrap: break-word;
+        }
+        .product-description {
+            word-wrap: break-word;
+            word-break: break-word;
+            white-space: normal;
+            overflow-wrap: break-word;
+            max-width: 100%;
+        }
+        .pros-text, .cons-text {
+            word-wrap: break-word;
+            word-break: break-word;
+            white-space: normal;
+            overflow-wrap: break-word;
+        }
+        .review-card .card-body {
+            overflow: hidden;
+        }
+        .tag-badge {
+            white-space: normal;
+            word-wrap: break-word;
+            text-align: left;
+            max-width: 100%;
+        }
+        .product-name {
+            word-wrap: break-word;
+            word-break: break-word;
+        }
     </style>
 </head>
 <body>
 
-    <nav class="navbar navbar-dark bg-dark border-bottom border-secondary px-4">
-        <div class="container-fluid">
-            <a class="navbar-brand text-white" href="/">⭐️ Честный Отзыв</a>
-            <div class="d-flex gap-3">
-                <a href="/ProductPage.html" class="btn btn-outline-light btn-sm">📦 Каталог</a>
-                <div id="userInfo"></div>
-            </div>
-        </div>
-    </nav>
+    <!--навбар -->
+    <div id="navbar-container"></div>
 
     <div class="container mt-4">
         <a href="/ProductPage.html" class="btn btn-outline-secondary btn-sm mb-3">← Назад к товарам</a>
@@ -84,7 +154,7 @@
 
     <!-- Модалка: Написать отзыв -->
     <div class="modal fade" id="reviewModal" tabindex="-1">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-dialog-scrollable">
             <div class="modal-content bg-dark text-white border-secondary">
                 <div class="modal-header border-secondary">
                     <h5 class="modal-title">✍️ Написать отзыв</h5>
@@ -161,6 +231,35 @@
         </div>
     </div>
 
+    <!-- Модалка: Голосование за теги (исправленная) -->
+    <div class="modal fade" id="tagVoteModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content bg-dark text-white border-secondary">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title"><i class="fas fa-tags"></i> Голосование за теги</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-secondary small mb-3">
+                        <i class="fas fa-info-circle"></i> 
+                        Выберите теги, которые характеризуют этот товар. 
+                        Голосовать можно за любое количество тегов, но за один тег можно проголосовать только один раз.
+                    </p>
+                    <div class="mb-3">
+                        <input type="text" id="tagSearchInput" class="form-control form-control-sm bg-dark text-white border-secondary rounded-pill" 
+                               placeholder="🔍 Поиск тега..." style="max-width: 280px;">
+                    </div>
+                    <div id="tagsVoteList" class="d-flex flex-wrap gap-2" style="max-height: 400px; overflow-y: auto; min-height: 150px;">
+                        <span class="text-secondary">Загрузка тегов...</span>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-secondary btn-sm rounded-pill px-3" data-bs-dismiss="modal">Закрыть</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Модалка: Сообщение -->
     <div class="modal fade" id="messageModal" tabindex="-1">
         <div class="modal-dialog">
@@ -178,38 +277,30 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/navbar.js"></script>
     
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const productId = urlParams.get('id');
         let currentUser = null;
+        let allTagsForVote = []; // Все теги для голосования
+        let productTagsData = null; // Данные о тегах товара
 
         if (!productId) {
             document.getElementById('content').innerHTML = '<div class="alert alert-danger m-3">❌ Товар не указан</div>';
         } else {
-            checkAuthAndLoad();
+            loadProductAndUser();
         }
 
-        async function checkAuthAndLoad() {
+        async function loadProductAndUser() {
             try {
-                const res = await fetch('/api/me');
-                const data = await res.json();
-                
-                if (data.isAuthenticated) {
-                    currentUser = data.user;
-                    document.getElementById('userInfo').innerHTML = `
-                        <span class="badge bg-primary">👋 ${escapeHtml(currentUser.name)}</span>
-                        <button class="btn btn-danger btn-sm" id="logoutBtn">Выйти</button>
-                    `;
-                    document.getElementById('logoutBtn')?.addEventListener('click', async () => {
-                        await fetch('/api/logout', { method: 'POST' });
-                        window.location.href = '/';
-                    });
-                } else {
-                    document.getElementById('userInfo').innerHTML = `<a href="/login.html" class="btn btn-outline-light btn-sm">Войти</a>`;
+                const meRes = await fetch('/api/me');
+                const meData = await meRes.json();
+                if (meData.isAuthenticated) {
+                    currentUser = meData.user;
                 }
-                
                 await loadProduct();
+                await loadProductTags();
             } catch (error) {
                 await loadProduct();
             }
@@ -230,18 +321,190 @@
             }
         }
 
+        // Загрузка тегов товара
+        async function loadProductTags() {
+            try {
+                const response = await fetch(`/api/products/${productId}/tags`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    productTagsData = data;
+                    updateTagDisplay();
+                    
+                    // Загружаем все теги для голосования
+                    const tagsResponse = await fetch('/api/tags');
+                    const tagsData = await tagsResponse.json();
+                    if (tagsData.success) {
+                        allTagsForVote = tagsData.tags;
+                    }
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки тегов товара:', error);
+            }
+        }
+
+        // Обновление отображения тегов в карточке товара
+        function updateTagDisplay() {
+            if (!productTagsData) return;
+            
+            const container = document.getElementById('productTagsContainer');
+            if (!container) return;
+            
+            // Берём все теги и фильтруем только с голосами >0, сортируем по голосам, берём топ 10
+            const allTags = productTagsData.allTags || [];
+            const tagsWithVotes = allTags.filter(tag => tag.votes > 0);
+            const topTags = tagsWithVotes.sort((a, b) => b.votes - a.votes).slice(0, 10);
+            
+            if (topTags.length === 0) {
+                container.innerHTML = '<span class="text-secondary small">Нет тегов с голосами</span>';
+                return;
+            }
+            
+            const userVotedTags = allTags.filter(t => t.user_voted).map(t => t.id);
+            
+            container.innerHTML = topTags.map(tag => `
+                <span class="badge ${userVotedTags.includes(tag.id) ? 'bg-primary' : 'bg-secondary'} p-2 me-2 mb-2 tag-item" style="font-size: 0.9rem;">
+                    <i class="fas fa-tag"></i> ${escapeHtml(tag.name)}
+                    <span class="ms-1 rounded-pill bg-dark px-2 py-0" style="font-size: 0.75rem;">${tag.votes}</span>
+                </span>
+            `).join('');
+        }
+
+        // Открытие модалки голосования
+        window.openTagVoteModal = function() {
+            if (!currentUser) {
+                showMessage('Войдите, чтобы голосовать за теги', true);
+                return;
+            }
+            
+            // Загружаем актуальные данные о голосах пользователя
+            loadProductTags().then(() => {
+                renderTagVoteList();
+                new bootstrap.Modal(document.getElementById('tagVoteModal')).show();
+            });
+        };
+        
+        // Отрисовка списка тегов для голосования 
+        function renderTagVoteList() {
+            const searchTerm = document.getElementById('tagSearchInput')?.value.toLowerCase() || '';
+            const container = document.getElementById('tagsVoteList');
+            
+            if (!allTagsForVote || allTagsForVote.length === 0) {
+                container.innerHTML = '<span class="text-secondary">Загрузка тегов...</span>';
+                return;
+            }
+            
+            // Фильтрация по поиску
+            let filteredTags = allTagsForVote;
+            if (searchTerm) {
+                filteredTags = allTagsForVote.filter(tag => 
+                    tag.name.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            if (filteredTags.length === 0) {
+                container.innerHTML = '<span class="text-secondary">Теги не найдены</span>';
+                return;
+            }
+            
+            // Получаем ID тегов, за которые пользователь уже проголосовал
+            const votedTagIds = productTagsData?.allTags?.filter(t => t.user_voted).map(t => t.id) || [];
+            
+            container.innerHTML = filteredTags.map(tag => {
+                const isVoted = votedTagIds.includes(tag.id);
+                const currentVotes = productTagsData?.allTags?.find(t => t.id === tag.id)?.votes || 0;
+                
+                return `
+                    <button class="btn btn-sm rounded-pill px-2 py-1 ${isVoted ? 'tag-voted' : 'btn-outline-secondary'}"
+                            onclick="voteForTag(${tag.id}, '${escapeHtml(tag.name)}', this)"
+                            data-tag-id="${tag.id}"
+                            style="font-size: 0.8rem;">
+                        <i class="fas fa-tag fa-xs"></i> ${escapeHtml(tag.name)}
+                        <span class="ms-1 badge ${isVoted ? 'bg-light text-dark' : 'bg-secondary'} rounded-pill" style="font-size: 0.7rem;">${currentVotes}</span>
+                    </button>
+                `;
+            }).join('');
+        }
+        
+        // Голосование за тег
+        window.voteForTag = async function(tagId, tagName, buttonElement) {
+            if (!currentUser) {
+                showMessage('Войдите, чтобы голосовать за теги', true);
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/products/${productId}/tags/${tagId}/vote`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Обновляем данные о тегах товара
+                    await loadProductTags();
+                    
+                    // Обновляем отображение в карточке товара
+                    updateTagDisplay();
+                    
+                    // Обновляем текущую кнопку в модалке
+                    const isVoted = productTagsData?.allTags?.find(t => t.id === tagId)?.user_voted || false;
+                    const currentVotes = productTagsData?.allTags?.find(t => t.id === tagId)?.votes || 0;
+                    
+                    buttonElement.className = `btn btn-sm rounded-pill px-2 py-1 ${isVoted ? 'tag-voted' : 'btn-outline-secondary'}`;
+                    buttonElement.innerHTML = `
+                        <i class="fas fa-tag fa-xs"></i> ${escapeHtml(tagName)}
+                        <span class="ms-1 badge ${isVoted ? 'bg-light text-dark' : 'bg-secondary'} rounded-pill" style="font-size: 0.7rem;">${currentVotes}</span>
+                    `;
+                    
+                } else {
+                    showMessage(data.error || 'Ошибка при голосовании', true);
+                }
+            } catch (error) {
+                console.error('Ошибка голосования:', error);
+                showMessage('Ошибка при голосовании', true);
+            }
+        };
+
         function renderProduct(product, reviews) {
             const html = `
                 <div class="card product-card mb-4">
                     <div class="card-body">
                         <div class="text-center">
                             <div class="display-1">${getCategoryEmoji(product.category_id)}</div>
-                            <h1 class="text-white mt-2">${escapeHtml(product.name)}</h1>
+                            <h1 class="text-white mt-2 product-name">${escapeHtml(product.name)}</h1>
                             <div class="text-purple">${escapeHtml(product.category_name)}</div>
                             <div class="display-6 text-warning mt-2">⭐ ${parseFloat(product.avg_rating).toFixed(1)} / 5</div>
                             <div class="text-secondary">${product.review_count || 0} отзывов</div>
                             ${product.address ? `<div class="mt-3"><i class="fas fa-map-marker-alt"></i> ${escapeHtml(product.address)}</div>` : ''}
-                            <div class="text-secondary mt-3">${escapeHtml(product.description) || 'Описание отсутствует'}</div>
+                            <div class="text-secondary mt-3 product-description">${escapeHtml(product.description) || 'Описание отсутствует'}</div>
+                            
+                            <!-- Блок тегов товара -->
+                            <div class="mt-4 pt-3 border-top border-secondary">
+                                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="fas fa-tags text-primary"></i>
+                                        <strong class="text-white">Популярные теги:</strong>
+                                    </div>
+                                    ${currentUser ? `
+                                        <button class="btn btn-outline-primary btn-sm rounded-pill" onclick="openTagVoteModal()">
+                                            <i class="fas fa-vote-yea"></i> Голосовать за теги
+                                        </button>
+                                    ` : `
+                                        <a href="/login.html" class="btn btn-outline-secondary btn-sm rounded-pill">
+                                            <i class="fas fa-sign-in-alt"></i> Войдите чтобы голосовать
+                                        </a>
+                                    `}
+                                </div>
+                                <div id="productTagsContainer" class="mt-3 d-flex flex-wrap align-items-center">
+                                    <span class="text-secondary">Загрузка тегов...</span>
+                                </div>
+                                <div class="text-secondary small mt-2">
+                                    <i class="fas fa-info-circle"></i> Показываются только теги с голосами (максимум 10)
+                                </div>
+                            </div>
+                            
                             ${currentUser ? `<button class="btn btn-primary mt-4" onclick="openReviewModal()"><i class="fas fa-pen"></i> Написать отзыв</button>` : '<div class="mt-4 text-secondary"><a href="/login.html" class="text-purple">Войдите</a> чтобы оставить отзыв</div>'}
                         </div>
                     </div>
@@ -252,6 +515,11 @@
             document.getElementById('content').innerHTML = html;
             window.currentProductId = product.id;
             window.currentProductName = product.name;
+            
+            // Обновляем отображение тегов, если данные уже загружены
+            if (productTagsData) {
+                updateTagDisplay();
+            }
         }
 
         function renderReviews(reviews) {
@@ -268,15 +536,20 @@
                 return `
                     <div class="card review-card mb-3" data-review-id="${review.id}">
                         <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <div class="flex-grow-1">
-                                    <div class="d-flex align-items-center gap-2 mb-2">
+                            <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                                <div class="flex-grow-1" style="min-width: 0;">
+                                    <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
                                         <strong class="text-white">${escapeHtml(review.author_name)}</strong>
                                         <div class="text-warning">⭐ ${review.rating} / 5</div>
-                                    </div>
-                                    <p class="text-secondary mt-2">${escapeHtml(review.comment) || 'Без комментария'}</p>
-                                    <div class="d-flex justify-content-between align-items-center mt-3">
                                         <div class="text-secondary small">${new Date(review.created_at).toLocaleDateString('ru-RU')}</div>
+                                    </div>
+                                    <p class="text-secondary mt-2 review-text">${escapeHtml(review.comment) || 'Без комментария'}</p>
+                                    ${review.pros ? `<div class="text-success small mt-1"><i class="fas fa-thumbs-up"></i> <strong>Плюсы:</strong> <span class="pros-text">${escapeHtml(review.pros)}</span></div>` : ''}
+                                    ${review.cons ? `<div class="text-danger small mt-1"><i class="fas fa-thumbs-down"></i> <strong>Минусы:</strong> <span class="cons-text">${escapeHtml(review.cons)}</span></div>` : ''}
+                                    <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
+                                        <div class="text-secondary small">
+                                            <i class="far fa-clock"></i> ${new Date(review.created_at).toLocaleDateString('ru-RU')}
+                                        </div>
                                         <div class="d-flex gap-3 align-items-center">
                                             ${currentUser && currentUser.id !== review.author_id ? `
                                                 <div class="d-flex gap-2 align-items-center">
@@ -318,103 +591,103 @@
 
         // Функция для лайка/дизлайка
         window.toggleLike = async (reviewId, isLike, buttonElement) => {
-    if (!currentUser) {
-        showMessage('Войдите, чтобы оценивать отзывы', true);
-        return;
-    }
-    
-    // Находим карточку отзыва
-    const reviewCard = buttonElement.closest('.review-card');
-    const likeBtn = reviewCard.querySelector('.btn-outline-success, .btn-success');
-    const dislikeBtn = reviewCard.querySelector('.btn-outline-danger, .btn-danger');
-    
-    // Проверяем текущее состояние
-    const isCurrentlyLiked = likeBtn && likeBtn.classList.contains('btn-success');
-    const isCurrentlyDisliked = dislikeBtn && dislikeBtn.classList.contains('btn-danger');
-    
-    // Определяем, нужно ли удалить оценку
-    let shouldRemove = false;
-    if (isLike && isCurrentlyLiked) {
-        shouldRemove = true; // Убираем лайк
-    } else if (!isLike && isCurrentlyDisliked) {
-        shouldRemove = true; // Убираем дизлайк
-    }
-    
-    try {
-        let response;
-        if (shouldRemove) {
-            // Отправляем запрос на удаление оценки
-            response = await fetch(`/api/reviews/like/${reviewId}`, {
-                method: 'DELETE',
-                headers: { 'Content-Type': 'application/json' }
-            });
-        } else {
-            // Отправляем запрос на установку оценки
-            response = await fetch('/api/reviews/like', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    review_id: reviewId,
-                    is_like: isLike
-                })
-            });
-        }
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            // Обновляем UI без перезагрузки всей страницы
-            if (shouldRemove) {
-                // Снимаем выделение с кнопки
-                if (isLike) {
-                    likeBtn.classList.remove('btn-success');
-                    likeBtn.classList.add('btn-outline-success');
-                } else {
-                    dislikeBtn.classList.remove('btn-danger');
-                    dislikeBtn.classList.add('btn-outline-danger');
-                }
-            } else {
-                // Снимаем выделение с противоположной кнопки (если была)
-                if (isLike) {
-                    // Убираем выделение с дизлайка, если он был
-                    if (dislikeBtn.classList.contains('btn-danger')) {
-                        dislikeBtn.classList.remove('btn-danger');
-                        dislikeBtn.classList.add('btn-outline-danger');
-                    }
-                    // Добавляем выделение лайку
-                    likeBtn.classList.remove('btn-outline-success');
-                    likeBtn.classList.add('btn-success');
-                } else {
-                    // Убираем выделение с лайка, если он был
-                    if (likeBtn.classList.contains('btn-success')) {
-                        likeBtn.classList.remove('btn-success');
-                        likeBtn.classList.add('btn-outline-success');
-                    }
-                    // Добавляем выделение дизлайку
-                    dislikeBtn.classList.remove('btn-outline-danger');
-                    dislikeBtn.classList.add('btn-danger');
-                }
+            if (!currentUser) {
+                showMessage('Войдите, чтобы оценивать отзывы', true);
+                return;
             }
             
-            // Обновляем счетчики
-            if (likeBtn.querySelector('.ms-1')) {
-                likeBtn.querySelector('.ms-1').textContent = data.likes_count || 0;
-            }
-            if (dislikeBtn.querySelector('.ms-1')) {
-                dislikeBtn.querySelector('.ms-1').textContent = data.dislikes_count || 0;
+            // Находим карточку отзыва
+            const reviewCard = buttonElement.closest('.review-card');
+            const likeBtn = reviewCard.querySelector('.btn-outline-success, .btn-success');
+            const dislikeBtn = reviewCard.querySelector('.btn-outline-danger, .btn-danger');
+            
+            // Проверяем текущее состояние
+            const isCurrentlyLiked = likeBtn && likeBtn.classList.contains('btn-success');
+            const isCurrentlyDisliked = dislikeBtn && dislikeBtn.classList.contains('btn-danger');
+            
+            // Определяем, нужно ли удалить оценку
+            let shouldRemove = false;
+            if (isLike && isCurrentlyLiked) {
+                shouldRemove = true; // Убираем лайк
+            } else if (!isLike && isCurrentlyDisliked) {
+                shouldRemove = true; // Убираем дизлайк
             }
             
-            // Анимация
-            buttonElement.classList.add('like-animation');
-            setTimeout(() => buttonElement.classList.remove('like-animation'), 300);
-        } else {
-            showMessage(data.error || 'Ошибка при обработке оценки', true);
-        }
-    } catch (error) {
-        console.error('Error toggling like:', error);
-        showMessage('Ошибка при обработке оценки', true);
-    }
-};
+            try {
+                let response;
+                if (shouldRemove) {
+                    // Отправляем запрос на удаление оценки
+                    response = await fetch(`/api/reviews/like/${reviewId}`, {
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                } else {
+                    // Отправляем запрос на установку оценки
+                    response = await fetch('/api/reviews/like', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            review_id: reviewId,
+                            is_like: isLike
+                        })
+                    });
+                }
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Обновляем UI без перезагрузки всей страницы
+                    if (shouldRemove) {
+                        // Снимаем выделение с кнопки
+                        if (isLike) {
+                            likeBtn.classList.remove('btn-success');
+                            likeBtn.classList.add('btn-outline-success');
+                        } else {
+                            dislikeBtn.classList.remove('btn-danger');
+                            dislikeBtn.classList.add('btn-outline-danger');
+                        }
+                    } else {
+                        // Снимаем выделение с противоположной кнопки (если была)
+                        if (isLike) {
+                            // Убираем выделение с дизлайка, если он был
+                            if (dislikeBtn.classList.contains('btn-danger')) {
+                                dislikeBtn.classList.remove('btn-danger');
+                                dislikeBtn.classList.add('btn-outline-danger');
+                            }
+                            // Добавляем выделение лайку
+                            likeBtn.classList.remove('btn-outline-success');
+                            likeBtn.classList.add('btn-success');
+                        } else {
+                            // Убираем выделение с лайка, если он был
+                            if (likeBtn.classList.contains('btn-success')) {
+                                likeBtn.classList.remove('btn-success');
+                                likeBtn.classList.add('btn-outline-success');
+                            }
+                            // Добавляем выделение дизлайку
+                            dislikeBtn.classList.remove('btn-outline-danger');
+                            dislikeBtn.classList.add('btn-danger');
+                        }
+                    }
+                    
+                    // Обновляем счетчики
+                    if (likeBtn.querySelector('.ms-1')) {
+                        likeBtn.querySelector('.ms-1').textContent = data.likes_count || 0;
+                    }
+                    if (dislikeBtn.querySelector('.ms-1')) {
+                        dislikeBtn.querySelector('.ms-1').textContent = data.dislikes_count || 0;
+                    }
+                    
+                    // Анимация
+                    buttonElement.classList.add('like-animation');
+                    setTimeout(() => buttonElement.classList.remove('like-animation'), 300);
+                } else {
+                    showMessage(data.error || 'Ошибка при обработке оценки', true);
+                }
+            } catch (error) {
+                console.error('Error toggling like:', error);
+                showMessage('Ошибка при обработке оценки', true);
+            }
+        };
 
         window.openReviewModal = () => {
             document.getElementById('reviewRating').value = 0;
@@ -525,6 +798,11 @@
             } catch (error) {
                 document.getElementById('reportError').textContent = 'Ошибка отправки';
             }
+        });
+        
+        // Поиск тегов в модалке
+        document.getElementById('tagSearchInput')?.addEventListener('input', () => {
+            renderTagVoteList();
         });
 
         function showMessage(text, isError = false) {
