@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мой профиль — Честный Отзыв</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: #0B1120;
+            color: #E2E8F0;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .profile-card {
+            background: #1A2335;
+            border: 1px solid #2D3748;
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .avatar-circle {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, #C084FC, #818CF8);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            color: white;
+            margin: 0 auto 1rem auto;
+        }
+        
+        .stat-card {
+            background: #0B1120;
+            border: 1px solid #2D3748;
+            border-radius: 15px;
+            padding: 1rem;
+            text-align: center;
+            transition: 0.2s;
+        }
+        
+        .stat-card:hover {
+            border-color: #6C63FF;
+            transform: translateY(-3px);
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #C084FC;
+        }
+        
+        .stat-label {
+            font-size: 0.85rem;
+            color: #94A3B8;
+        }
+        
+        .info-row {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #2D3748;
+        }
+        
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        
+        .info-label {
+            color: #94A3B8;
+            font-size: 0.85rem;
+            margin-bottom: 0.25rem;
+        }
+        
+        .info-value {
+            color: #E2E8F0;
+            font-weight: 500;
+        }
+        
+        .review-card {
+            background: #1A2335;
+            border: 1px solid #2D3748;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            transition: 0.2s;
+        }
+        
+        .review-card:hover {
+            border-color: #6C63FF;
+        }
+        
+        .rating-stars {
+            color: #FBBF24;
+            font-size: 0.9rem;
+        }
+        
+        .product-link {
+            color: #C084FC;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        
+        .product-link:hover {
+            text-decoration: underline;
+        }
+        
+        .badge-role {
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            display: inline-block;
+        }
+        
+        .badge-role.admin {
+            background: linear-gradient(135deg, #EF4444, #DC2626);
+            color: white;
+        }
+        
+        .badge-role.business {
+            background: linear-gradient(135deg, #3B82F6, #2563EB);
+            color: white;
+        }
+        
+        .badge-role.user {
+            background: linear-gradient(135deg, #10B981, #059669);
+            color: white;
+        }
+        
+        .tag-badge {
+            background: #0B1120;
+            border: 1px solid #2D3748;
+            color: #C084FC;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+        }
+        
+        .empty-reviews {
+            background: #1A2335;
+            border: 1px solid #2D3748;
+            border-radius: 15px;
+            padding: 3rem;
+            text-align: center;
+        }
+        
+        .btn-outline-custom {
+            border: 1px solid #2D3748;
+            background: transparent;
+            color: #E2E8F0;
+            transition: 0.2s;
+        }
+        
+        .btn-outline-custom:hover {
+            border-color: #6C63FF;
+            background: #6C63FF;
+            color: white;
+        }
+        
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            padding-left: 1rem;
+            border-left: 4px solid #C084FC;
+        }
+        
+        /* Модальное окно для редактирования */
+        .modal-content {
+            background: #1A2335;
+            border: 1px solid #2D3748;
+            border-radius: 20px;
+        }
+        
+        .modal-header {
+            border-bottom-color: #2D3748;
+        }
+        
+        .modal-footer {
+            border-top-color: #2D3748;
+        }
+        
+        .modal-title {
+            color: white;
+        }
+        
+        .btn-close {
+            filter: invert(1);
+        }
+        
+        .rating-input {
+            display: flex;
+            gap: 10px;
+            flex-direction: row-reverse;
+            justify-content: flex-end;
+        }
+        
+        .rating-input input {
+            display: none;
+        }
+        
+        .rating-input label {
+            font-size: 2rem;
+            color: #2D3748;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        
+        .rating-input label:hover,
+        .rating-input label:hover ~ label,
+        .rating-input input:checked ~ label {
+            color: #FBBF24;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="navbar-container"></div>
+
+    <div class="container py-4">
+        <div class="row g-4">
+            <!-- Левая колонка - Информация профиля -->
+            <div class="col-lg-4">
+                <div class="profile-card">
+                    <div class="avatar-circle">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <h3 class="text-center text-white mb-2" id="userName">Загрузка...</h3>
+                    <div class="text-center mb-3" id="userRole"></div>
+                    
+                    <button id="logoutBtn" class="btn btn-danger w-100 rounded-pill">
+                        <i class="fas fa-sign-out-alt"></i> Выйти
+                    </button>
+                </div>
+                
+                <div class="profile-card">
+    <h6 class="text-white mb-3"><i class="fas fa-chart-line"></i> Статистика</h6>
+    <div class="row g-3">
+        <div class="col-4">
+            <div class="stat-card">
+                <div class="stat-number" id="reviewsCount">0</div>
+                <div class="stat-label">Отзывов</div>
+            </div>
+        </div>
+        <div class="col-4">
+            <div class="stat-card">
+                <div class="stat-number" id="likesReceived">0</div>
+                <div class="stat-label">👍</div>
+            </div>
+        </div>
+        <div class="col-4">
+            <div class="stat-card">
+                <div class="stat-number" id="dislikesReceived">0</div>
+                <div class="stat-label">👎 </div>
+            </div>
+        </div>
+    </div>
+</div>
+                
+                <div class="profile-card">
+                    <h6 class="text-white mb-3"><i class="fas fa-id-card"></i> Личная информация</h6>
+                    
+                    <div class="info-row">
+                        <div class="info-label"><i class="fas fa-envelope"></i> Email</div>
+                        <div class="info-value" id="userEmail">-</div>
+                    </div>
+                    
+                    <div class="info-row">
+                        <div class="info-label"><i class="fas fa-phone"></i> Телефон</div>
+                        <div class="info-value" id="userPhone">Не указан</div>
+                    </div>
+                    
+                    <div class="info-row">
+                        <div class="info-label"><i class="fas fa-calendar"></i> Дата рождения</div>
+                        <div class="info-value" id="userBirthDate">Не указана</div>
+                    </div>
+                    
+                    <div class="info-row">
+                        <div class="info-label"><i class="fas fa-city"></i> Город</div>
+                        <div class="info-value" id="userCity">Не указан</div>
+                    </div>
+                    
+                    
+                </div>
+                
+                
+            </div>
+            
+            <!-- Правая колонка - Отзывы -->
+            <div class="col-lg-8">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="section-title mb-0">📝 Мои отзывы</h5>
+                    <button id="refreshBtn" class="btn btn-sm btn-outline-custom rounded-pill px-3">
+                        <i class="fas fa-sync-alt"></i> Обновить
+                    </button>
+                </div>
+                
+                <div id="reviewsList">
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-purple" style="color: #C084FC;" role="status">
+                            <span class="visually-hidden">Загрузка...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для редактирования отзыва -->
+    <div class="modal fade" id="editReviewModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-edit"></i> Редактирование отзыва</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="editReviewId">
+                    <input type="hidden" id="editProductId">
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Товар</label>
+                        <input type="text" id="editProductName" class="form-control" readonly style="background: #0B1120; border: 1px solid #2D3748; color: #E2E8F0;">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Оценка</label>
+                        <div class="rating-input" id="editRatingInput">
+                            <input type="radio" name="edit_rating" value="5" id="edit_star5"><label for="edit_star5">★</label>
+                            <input type="radio" name="edit_rating" value="4" id="edit_star4"><label for="edit_star4">★</label>
+                            <input type="radio" name="edit_rating" value="3" id="edit_star3"><label for="edit_star3">★</label>
+                            <input type="radio" name="edit_rating" value="2" id="edit_star2"><label for="edit_star2">★</label>
+                            <input type="radio" name="edit_rating" value="1" id="edit_star1"><label for="edit_star1">★</label>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Комментарий</label>
+                        <textarea id="editComment" class="form-control" rows="4" style="background: #0B1120; border: 1px solid #2D3748; color: #E2E8F0;"></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Плюсы</label>
+                        <textarea id="editPros" class="form-control" rows="2" style="background: #0B1120; border: 1px solid #2D3748; color: #E2E8F0;"></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Минусы</label>
+                        <textarea id="editCons" class="form-control" rows="2" style="background: #0B1120; border: 1px solid #2D3748; color: #E2E8F0;"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-primary rounded-pill" id="saveReviewBtn">Сохранить изменения</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/navbar.js"></script>
+    
+    <script>
+        let currentUser = null;
+        let userReviews = [];
+        let editModal = null;
+
+
+
+        function getTargetUserId() {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('userId');
+}
+
+
+        async function loadUserProfile() {
+    try {
+        const targetUserId = getTargetUserId();
+        const isOwnProfile = !targetUserId;
+        
+        let userData;
+        
+        if (isOwnProfile) {
+            // Свой профиль
+            const response = await fetch('/api/me');
+            const data = await response.json();
+            
+            if (!data.isAuthenticated) {
+                window.location.href = '/login.html';
+                return;
+            }
+            userData = data.user;
+        } else {
+            // Чужой профиль
+            const response = await fetch(`/api/users/${targetUserId}`);
+            userData = await response.json();
+            
+            if (userData.error) {
+                showError('Пользователь не найден');
+                return;
+            }
+        }
+        
+        currentUser = userData;
+        
+        // Заполняем данные
+        document.getElementById('userName').textContent = currentUser.name;
+        document.getElementById('userEmail').textContent = currentUser.email;
+        document.getElementById('userPhone').textContent = currentUser.phone || 'Не указан';
+        document.getElementById('userBirthDate').textContent = currentUser.birth_date || 'Не указана';
+        document.getElementById('userCity').textContent = currentUser.city || 'Не указан';
+        
+        // Роль
+        const roleElement = document.getElementById('userRole');
+        if (currentUser.role === 'admin') {
+            roleElement.innerHTML = '<span class="badge-role admin"><i class="fas fa-shield-alt"></i> Администратор</span>';
+        } else if (currentUser.role === 'business') {
+            roleElement.innerHTML = '<span class="badge-role business"><i class="fas fa-building"></i> Бизнес-аккаунт</span>';
+        } else {
+            roleElement.innerHTML = '<span class="badge-role user"><i class="fas fa-user"></i> Пользователь</span>';
+        }
+        
+        // Скрываем кнопку выхода и редактирования для чужих профилей
+        if (!isOwnProfile) {
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) logoutBtn.style.display = 'none';
+            
+            // Меняем заголовок страницы
+            document.title = `${currentUser.name} — Профиль | Честный Отзыв`;
+        }
+        
+        // Загружаем отзывы (передаем ID)
+        await loadUserReviews(currentUser.id);
+        await loadUserStats(currentUser.id);
+        
+        // Модалка только для своего профиля
+        if (isOwnProfile) {
+            editModal = new bootstrap.Modal(document.getElementById('editReviewModal'));
+        }
+        
+    } catch (error) {
+        console.error('Ошибка загрузки профиля:', error);
+        showError('Не удалось загрузить данные профиля');
+    }
+}
+        
+        // Загрузка отзывов пользователя
+async function loadUserReviews(userId) {
+    try {
+        const response = await fetch(`/api/users/${userId}/reviews`);
+        const data = await response.json();
+        
+        const reviewsList = document.getElementById('reviewsList');
+        
+        if (!data || data.length === 0) {
+            reviewsList.innerHTML = `
+                <div class="empty-reviews">
+                    <i class="fas fa-pen-fancy fa-3x mb-3" style="color: #C084FC;"></i>
+                    <h5 class="text-white mb-2">У пользователя пока нет отзывов</h5>
+                    <p class="text-secondary mb-3">Отзывы появятся после того, как пользователь оставит первый отзыв</p>
+                </div>
+            `;
+            document.getElementById('reviewsCount').textContent = '0';
+            return;
+        }
+        
+        userReviews = data;
+        document.getElementById('reviewsCount').textContent = userReviews.length;
+        
+        // Определяем, свой это профиль или чужой
+        const isOwnProfile = !getTargetUserId();
+        
+        reviewsList.innerHTML = userReviews.map(review => `
+            <div class="review-card">
+                <div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
+                    <div class="flex-grow-1">
+                        <a href="/productCard.html?id=${review.product_id}" class="product-link">
+                            ${escapeHtml(review.product_name)}
+                        </a>
+                        <div class="rating-stars mt-1">
+                            ${renderStars(review.rating)}
+                            <span class="ms-2 text-white">${review.rating}/5</span>
+                        </div>
+                    </div>
+                    <div class="text-end">
+                        <small class="text-secondary">${formatDate(review.created_at)}</small>
+                        ${review.updated_at !== review.created_at ? '<small class="text-secondary ms-1">(ред.)</small>' : ''}
+                        ${review.is_hidden ? '<span class="badge bg-warning ms-2">Скрыт</span>' : ''}
+                    </div>
+                </div>
+                
+                ${review.comment ? `
+                    <div class="text-light mb-3" style="font-size: 0.95rem;">
+                        <i class="fas fa-quote-left me-2" style="color: #C084FC;"></i>
+                        ${escapeHtml(review.comment)}
+                    </div>
+                ` : ''}
+                
+                <div class="d-flex flex-wrap gap-3 mb-3">
+                    ${review.pros ? `<span class="text-success small"><i class="fas fa-thumbs-up"></i> ${escapeHtml(review.pros)}</span>` : ''}
+                    ${review.cons ? `<span class="text-danger small"><i class="fas fa-thumbs-down"></i> ${escapeHtml(review.cons)}</span>` : ''}
+                    <span class="text-secondary small"><i class="fas fa-heart" style="color: #EF4444;"></i> ${review.likes_count || 0} лайков</span>
+                    <span class="text-secondary small"><i class="fas fa-heart-broken" style="color: #EF4444;"></i> ${review.dislikes_count || 0} дизлайков</span>
+                </div>
+                
+                ${isOwnProfile ? `
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-custom rounded-pill px-3" onclick="openEditModal(${review.id})">
+                            <i class="fas fa-edit"></i> Редактировать
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger rounded-pill px-3" onclick="deleteReview(${review.id})">
+                            <i class="fas fa-trash"></i> Удалить
+                        </button>
+                    </div>
+                ` : ''}
+            </div>
+        `).join('');
+        
+    } catch (error) {
+        console.error('Ошибка загрузки отзывов:', error);
+        document.getElementById('reviewsList').innerHTML = `
+            <div class="empty-reviews">
+                <i class="fas fa-exclamation-triangle fa-3x mb-3 text-warning"></i>
+                <h5 class="text-white">Ошибка загрузки отзывов</h5>
+                <button class="btn btn-outline-custom rounded-pill mt-3" onclick="location.reload()">
+                    <i class="fas fa-redo-alt"></i> Повторить
+                </button>
+            </div>
+        `;
+    }
+}
+        
+        // Открыть модальное окно для редактирования
+        window.openEditModal = function(reviewId) {
+            const review = userReviews.find(r => r.id === reviewId);
+            if (!review) return;
+            
+            document.getElementById('editReviewId').value = review.id;
+            document.getElementById('editProductId').value = review.product_id;
+            document.getElementById('editProductName').value = review.product_name;
+            document.getElementById('editComment').value = review.comment || '';
+            document.getElementById('editPros').value = review.pros || '';
+            document.getElementById('editCons').value = review.cons || '';
+            
+            // Устанавливаем оценку
+            const ratingRadio = document.querySelector(`input[name="edit_rating"][value="${review.rating}"]`);
+            if (ratingRadio) ratingRadio.checked = true;
+            
+            editModal.show();
+        };
+        
+        // Сохранить изменения отзыва
+        document.getElementById('saveReviewBtn')?.addEventListener('click', async () => {
+            const reviewId = document.getElementById('editReviewId').value;
+            const rating = document.querySelector('input[name="edit_rating"]:checked')?.value;
+            const comment = document.getElementById('editComment').value;
+            const pros = document.getElementById('editPros').value;
+            const cons = document.getElementById('editCons').value;
+            
+            if (!rating) {
+                alert('Выберите оценку');
+                return;
+            }
+            
+            if (!comment || comment.trim().length < 3) {
+                alert('Комментарий должен быть не менее 3 символов');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/reviews/${reviewId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        rating: parseInt(rating),
+                        comment: comment.trim(),
+                        pros: pros.trim() || null,
+                        cons: cons.trim() || null
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('Отзыв успешно обновлен');
+                    editModal.hide();
+                    await loadUserReviews();
+                    await loadUserStats();
+                } else {
+                    alert('Ошибка: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Ошибка сохранения:', error);
+                alert('Не удалось сохранить изменения');
+            }
+        });
+        
+async function loadUserStats(userId) {
+    try {
+        const response = await fetch(`/api/users/${userId}/stats`);
+        const data = await response.json();
+        document.getElementById('likesReceived').textContent = data.total_likes || 0;
+        document.getElementById('dislikesReceived').textContent = data.total_dislikes || 0;
+    } catch (error) {
+        console.error('Ошибка загрузки статистики:', error);
+    }
+}
+        
+        
+        
+        // Удаление отзыва
+        // Удаление отзыва
+window.deleteReview = async function(reviewId) {
+    if (!confirm('Вы уверены, что хотите удалить этот отзыв?')) return;
+    
+    try {
+        const response = await fetch(`/api/reviews/${reviewId}`, {
+            method: 'DELETE'
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert('Отзыв успешно удален');
+            // После удаления перезагружаем отзывы текущего пользователя
+            await loadUserReviews(currentUser.id);
+            await loadUserStats(currentUser.id);
+        } else {
+            alert('Ошибка: ' + data.error);
+        }
+    } catch (error) {
+        console.error('Ошибка удаления:', error);
+        alert('Не удалось удалить отзыв');
+    }
+};
+        
+        // Выход из аккаунта
+        document.getElementById('logoutBtn')?.addEventListener('click', async () => {
+            await fetch('/api/logout', { method: 'POST' });
+            window.location.href = '/login.html';
+        });
+        
+        // Обновление страницы
+        document.getElementById('refreshBtn')?.addEventListener('click', () => {
+            location.reload();
+        });
+        
+        // Вспомогательные функции
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('ru-RU', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+        
+        function renderStars(rating) {
+            const fullStars = Math.floor(rating);
+            const hasHalfStar = rating % 1 >= 0.5;
+            let stars = '';
+            
+            for (let i = 0; i < fullStars; i++) {
+                stars += '<i class="fas fa-star"></i>';
+            }
+            if (hasHalfStar) {
+                stars += '<i class="fas fa-star-half-alt"></i>';
+            }
+            const emptyStars = 5 - Math.ceil(rating);
+            for (let i = 0; i < emptyStars; i++) {
+                stars += '<i class="far fa-star"></i>';
+            }
+            
+            return stars;
+        }
+        
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+        
+        function showError(message) {
+            const reviewsList = document.getElementById('reviewsList');
+            reviewsList.innerHTML = `
+                <div class="empty-reviews">
+                    <i class="fas fa-exclamation-circle fa-3x mb-3 text-danger"></i>
+                    <h5 class="text-white">${message}</h5>
+                    <button class="btn btn-outline-custom rounded-pill mt-3" onclick="location.reload()">
+                        <i class="fas fa-redo-alt"></i> Обновить страницу
+                    </button>
+                </div>
+            `;
+        }
+        
+        // Загружаем профиль при загрузке страницы
+        document.addEventListener('DOMContentLoaded', loadUserProfile);
+    </script>
+</body>
+</html>

@@ -20,7 +20,7 @@ async function loadNavbar() {
                             </a>
                         </div>
                         <div class="d-flex align-items-center gap-3">
-                            <span class="badge bg-secondary rounded-pill px-3 py-2">👋 ${escapeHtml(user.name)}</span>
+                            <a href="/profile.html" class="badge bg-secondary rounded-pill px-3 py-2 text-decoration-none">👋 ${escapeHtml(user.name)}</a>
                             ${isAdmin ? '<a href="/admin.html" class="btn btn-outline-warning btn-sm rounded-pill px-3"><i class="fas fa-shield-alt"></i> Админ-панель</a>' : ''}
                             <button class="btn btn-danger btn-sm rounded-pill px-3" id="logoutBtnNavbar">Выйти</button>
                         </div>

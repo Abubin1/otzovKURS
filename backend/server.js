@@ -1075,3 +1075,282 @@ app.delete('/api/admin/tags/:id', isAdmin, async (req, res) => {
         res.status(500).json({ success: false, error: error.message });
     }
 });
+
+
+
+
+// ========== ПОЛУЧЕНИЕ ОТЗЫВОВ ПОЛЬЗОВАТЕЛЯ ==========
+app.get('/api/users/:userId/reviews', async (req, res) => {
+    try {
+        const { userId } = req.params;
+        
+        // Для чужих профилей - показываем только НЕ скрытые отзывы
+        // Для своих - показываем все
+        const isOwnProfile = req.session.userId == userId;
+        
+        let query = `
+            SELECT 
+                r.*,
+                p.name as product_name,
+                p.id as product_id,
+                COUNT(CASE WHEN rl.is_like = TRUE THEN 1 END) as likes_count,
+                COUNT(CASE WHEN rl.is_like = FALSE THEN 1 END) as dislikes_count
+            FROM reviews r
+            JOIN products p ON r.product_id = p.id
+            LEFT JOIN review_likes rl ON rl.review_id = r.id
+            WHERE r.author_id = ?
+        `;
+        
+        // Если смотрим чужой профиль - не показываем скрытые отзывы
+        if (!isOwnProfile) {
+            query += ` AND r.is_hidden = FALSE`;
+        }
+        
+        query += ` GROUP BY r.id, p.name, p.id ORDER BY r.created_at DESC`;
+        
+        const [reviews] = await db.query(query, [userId]);
+        
+        res.json(reviews);
+    } catch (error) {
+        console.error('Ошибка получения отзывов пользователя:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// ========== ПОЛУЧЕНИЕ СТАТИСТИКИ ПОЛЬЗОВАТЕЛЯ ==========
+app.get('/api/users/:userId/stats', async (req, res) => {
+    try {
+        const { userId } = req.params;
+        
+        const isOwnProfile = req.session.userId == userId;
+        
+        // 1. Количество отзывов
+        let reviewsQuery = 'SELECT COUNT(*) as count FROM reviews WHERE author_id = ?';
+        if (!isOwnProfile) {
+            reviewsQuery += ' AND is_hidden = FALSE';
+        }
+        const [reviewsCount] = await db.query(reviewsQuery, [userId]);
+        
+        // 2. Получаем ID отзывов пользователя
+        let reviewsIdQuery = 'SELECT id FROM reviews WHERE author_id = ?';
+        if (!isOwnProfile) {
+            reviewsIdQuery += ' AND is_hidden = FALSE';
+        }
+        const [userReviews] = await db.query(reviewsIdQuery, [userId]);
+        const reviewIds = userReviews.map(r => r.id);
+        
+        let totalLikes = 0;
+        let totalDislikes = 0;
+        
+        // 3. Считаем лайки и дизлайки
+        if (reviewIds.length > 0) {
+            const [likesCount] = await db.query(`
+                SELECT 
+                    SUM(CASE WHEN is_like = 1 THEN 1 ELSE 0 END) as likes,
+                    SUM(CASE WHEN is_like = 0 THEN 1 ELSE 0 END) as dislikes
+                FROM review_likes
+                WHERE review_id IN (?)
+            `, [reviewIds]);
+            
+            totalLikes = likesCount[0].likes || 0;
+            totalDislikes = likesCount[0].dislikes || 0;
+        }
+        
+        res.json({
+            total_reviews: reviewsCount[0].count || 0,
+            total_likes: totalLikes,
+            total_dislikes: totalDislikes
+        });
+        
+    } catch (error) {
+        console.error('Ошибка получения статистики:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// ========== ПОЛУЧЕНИЕ ТЕГОВ ПОЛЬЗОВАТЕЛЯ ==========
+app.get('/api/users/:userId/tags', async (req, res) => {
+    try {
+        const { userId } = req.params;
+        
+        // Проверка доступа
+        if (req.session.userId != userId) {
+            const [userCheck] = await db.query('SELECT role FROM users WHERE id = ?', [req.session.userId]);
+            if (!userCheck.length || userCheck[0].role !== 'admin') {
+                return res.status(403).json({ error: 'Нет доступа' });
+            }
+        }
+        
+        const [tags] = await db.query(`
+            SELECT 
+                t.id,
+                t.name,
+                COUNT(*) as vote_count
+            FROM product_tags pt
+            JOIN tags t ON pt.tag_id = t.id
+            WHERE pt.user_id = ?
+            GROUP BY t.id, t.name
+            ORDER BY vote_count DESC
+            LIMIT 20
+        `, [userId]);
+        
+        res.json(tags);
+    } catch (error) {
+        console.error('Ошибка получения тегов пользователя:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// ========== УДАЛЕНИЕ ОТЗЫВА ==========
+app.delete('/api/reviews/:reviewId', async (req, res) => {
+    try {
+        if (!req.session.userId) {
+            return res.status(401).json({ error: 'Не авторизован' });
+        }
+        
+        const { reviewId } = req.params;
+        
+        // Получаем информацию об отзыве
+        const [reviews] = await db.query(`
+            SELECT r.*, p.id as product_id 
+            FROM reviews r
+            JOIN products p ON r.product_id = p.id
+            WHERE r.id = ?
+        `, [reviewId]);
+        
+        if (reviews.length === 0) {
+            return res.status(404).json({ error: 'Отзыв не найден' });
+        }
+        
+        const review = reviews[0];
+        
+        // Проверяем права (автор или админ)
+        const [userCheck] = await db.query('SELECT role FROM users WHERE id = ?', [req.session.userId]);
+        const isAdmin = userCheck.length > 0 && userCheck[0].role === 'admin';
+        
+        if (review.author_id !== req.session.userId && !isAdmin) {
+            return res.status(403).json({ error: 'Нет прав на удаление этого отзыва' });
+        }
+        
+        // Удаляем связанные лайки
+        await db.query('DELETE FROM review_likes WHERE review_id = ?', [reviewId]);
+        
+        // Удаляем жалобы на этот отзыв
+        await db.query('DELETE FROM reports WHERE review_id = ?', [reviewId]);
+        
+        // Удаляем сам отзыв
+        await db.query('DELETE FROM reviews WHERE id = ?', [reviewId]);
+        
+        // Обновляем рейтинг продукта
+        await updateProductRating(review.product_id);
+        
+        res.json({ success: true, message: 'Отзыв удален' });
+        
+    } catch (error) {
+        console.error('Ошибка удаления отзыва:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// ========== РЕДАКТИРОВАНИЕ ОТЗЫВА ==========
+app.put('/api/reviews/:reviewId', async (req, res) => {
+    try {
+        if (!req.session.userId) {
+            return res.status(401).json({ error: 'Не авторизован' });
+        }
+        
+        const { reviewId } = req.params;
+        const { rating, comment, pros, cons } = req.body;
+        
+        // Проверяем существование отзыва и права
+        const [reviews] = await db.query(`
+            SELECT r.*, p.id as product_id 
+            FROM reviews r
+            JOIN products p ON r.product_id = p.id
+            WHERE r.id = ?
+        `, [reviewId]);
+        
+        if (reviews.length === 0) {
+            return res.status(404).json({ error: 'Отзыв не найден' });
+        }
+        
+        const review = reviews[0];
+        
+        if (review.author_id !== req.session.userId) {
+            return res.status(403).json({ error: 'Нет прав на редактирование этого отзыва' });
+        }
+        
+        // Валидация
+        if (rating && (rating < 1 || rating > 5)) {
+            return res.status(400).json({ error: 'Оценка должна быть от 1 до 5' });
+        }
+        
+        if (comment && comment.trim().length < 3) {
+            return res.status(400).json({ error: 'Текст отзыва должен быть не менее 3 символов' });
+        }
+        
+        // Обновляем отзыв
+        await db.query(`
+            UPDATE reviews 
+            SET rating = COALESCE(?, rating),
+                comment = COALESCE(?, comment),
+                pros = COALESCE(?, pros),
+                cons = COALESCE(?, cons),
+                updated_at = NOW()
+            WHERE id = ?
+        `, [rating, comment?.trim(), pros?.trim(), cons?.trim(), reviewId]);
+        
+        // Обновляем рейтинг продукта
+        await updateProductRating(review.product_id);
+        
+        res.json({ success: true, message: 'Отзыв обновлен' });
+        
+    } catch (error) {
+        console.error('Ошибка редактирования отзыва:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// ========== ПОЛУЧЕНИЕ ИНФОРМАЦИИ О ПОЛЬЗОВАТЕЛЕ ==========
+app.get('/api/users/:userId', async (req, res) => {
+    try {
+        const { userId } = req.params;
+        
+        const [users] = await db.query(`
+            SELECT id, name, email, phone, city, role, birth_date, registration_date, is_banned
+            FROM users 
+            WHERE id = ?
+        `, [userId]);
+        
+        if (users.length === 0) {
+            return res.status(404).json({ error: 'Пользователь не найден' });
+        }
+        
+        // Не возвращаем email и телефон если это не админ и не сам пользователь
+        const user = users[0];
+        
+        // Если запрашивает не админ и не сам пользователь - скрываем личные данные
+        if (req.session.userId != userId) {
+            const [adminCheck] = await db.query('SELECT role FROM users WHERE id = ?', [req.session.userId]);
+            const isAdmin = adminCheck.length > 0 && adminCheck[0].role === 'admin';
+            
+            if (!isAdmin) {
+                // Для чужих профилей скрываем email и телефон
+                user.email = 'скрыто';
+                user.phone = 'скрыто';
+                user.birth_date = null;
+            }
+        }
+        
+        res.json(user);
+        
+    } catch (error) {
+        console.error('Ошибка получения пользователя:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// ========== РАЗДАЧА СТРАНИЦЫ ПРОФИЛЯ ==========
+app.get('/profile.html', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/profile.html'));
+});
